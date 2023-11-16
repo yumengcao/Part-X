@@ -18,7 +18,7 @@ class GP_model:
         self.fal_num = fal_num
        
 
-    def confidence_interval(selfdd):
+    def confidence_interval(self):
         kernel = C(1.0, (1e-3, 1e3)) * R(10, (1e-2, 1e2))
         gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=9)
         gp.fit(self.X, self.Y)
