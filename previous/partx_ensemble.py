@@ -356,8 +356,7 @@ def model_construction(s: np.array, Y: list, v_s: int, sub_r: list, lower, upper
         y_sigma = sigma_st[idxs]
         for o in range(len(level)):
             for e in range(y_pred_st):
-                
-            level_quantile[i][o] = stats.norm.interval(0.96,mean,std) y_pred_st - norm.ppf(level[o])*sigma_st
+                level_quantile[i][o] = stats.norm.interval(0.96,mean,std) y_pred_st - norm.ppf(level[o])*sigma_st
         i_s = np.argmin(y_pred, axis=0)      #find maximum and minimum values of predicted values
         i_ss = np.argmax(y_pred, axis=0) 
         #conf_intveral_1 = stats.norm.interval(1-alpha, loc=y_pred[i_s], scale=y_sigma[i_s])
@@ -700,7 +699,7 @@ def Part_classify(sub_u: list, i_dim: int, i_B: int, alpha: float, test_function
                 TPP.append(TP)
                 TMP.append(TM)
                 H.append(fal_v)
-                evl.append(budgets)
+                evl.append(budgets) ``
                 p_iter.append(fal_iter)
                 dk = Y_min.index(min(Y_min))
                 t_fal.append(True_fal)

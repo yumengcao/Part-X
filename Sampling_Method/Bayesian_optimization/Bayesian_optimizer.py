@@ -9,7 +9,7 @@ from Sampling_Method.Uniform_random import uniform_sampling
 
 class Bayesian_Optimizer:
     
-    def __init__(self, X, Y, target_fun:str, subregion):
+    def __init__(self, X: np.array, Y: np.array, target_fun: str, subregion: list) -> np.array:
         self.X = X
         self.Y = Y
         self.target = target_fun
@@ -17,7 +17,7 @@ class Bayesian_Optimizer:
         
  
    
-    def test_function(self, M):
+    def test_function(self, X):
         return eval(self.target)
 
     def surrogate(self, Xsamples, model):
@@ -87,7 +87,7 @@ class Bayesian_Optimizer:
 
         '''
         # random search, generate random samples
-        sbo = uniform_sampling(self.subregion, n_b, i_dim)
+        sbo = uniform_sampling(self.subregion, i_dim, n_b)
         # calculate the acquisition function for each sample
         scores = self.acquisition(sbo, model)
         # locate the index of the largest scores
@@ -118,11 +118,11 @@ class Bayesian_Optimizer:
         n_bo = 5
         for j in range(n_bo):
             model = GaussianProcessRegressor(
-             kernel=Matern(nu=2.5),
-            alpha=1e-6,
-            normalize_y=True,
-            n_restarts_optimizer=len(self.X),
-            random_state= None,)
+             kernel = Matern(nu=2.5),
+            alpha = 1e-6,
+            normalize_y = True,
+            n_restarts_optimizer = len(self.X),
+            random_state = None,)
             model.fit(self.X, self.Y)
             # select the next point to sample
             bo_x = self.opt_acquisition(model, n_b, i_dim)
@@ -132,4 +132,4 @@ class Bayesian_Optimizer:
             self.X.append(bo_x)
             self.Y.append(bo_y)
         
-#b_o = Bayesian_Optinizer(s:np.array, Y:np.array, ' (M[0]**2+M[1]-11)**2+(M[0]+ M[1]**2-7)**2 -90', list: sub_r)
+#b_o = Bayesian_Optimizer(s:np.array, Y:np.array, ' (M[0]**2+M[1]-11)**2+(M[0]+ M[1]**2-7)**2 -90', list: sub_r)
