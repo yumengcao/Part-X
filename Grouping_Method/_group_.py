@@ -16,7 +16,7 @@ def criteria( robust_unif: list):
         group_crit.append(np.percentile(robust_unif, i))
     return group_crit
 
-def grouping (scores: dict, group_crit: list, subregions: dict, part_number: int) -> dict:
+def _grouping_ (scores: dict, group_crit: list, subregions: dict, part_number: int) -> dict:
     '''
     Grouping subregions with criterias
 

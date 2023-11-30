@@ -1,4 +1,5 @@
 import numpy as np
+from random import sample
 
 def vol(sub_u:list,i_dim: int) -> int:    #calculate the volume of undefined area
     '''
@@ -73,8 +74,8 @@ def select_regions(sample: np.array, subregion: list,
     return np.array(sample_select), robust_select
 
 
-def uni_number(subregions: dict, 
-               uni_rob_iter: dict, dim: int) -> float:
+def _uni_number_(subregions: dict, 
+               uni_rob_iter: dict, dim: int) -> dict:
     '''
     uniform in the whole region
      
@@ -83,23 +84,17 @@ def uni_number(subregions: dict,
     dim(int)
 
     return:
-    uni_number(float): density of uniform sampling points 
+    ni_rob_select(dict): selected robs
     (need to *vol(subregion))
 
     '''
     
-    index = list(uni_rob_iter)
-    k = list(len(uni_rob_iter[key]) for key in uni_rob_iter.keys())
-    minLen = min(k)
-    rob = list(uni_rob_iter.values())
-    keys = [rob.index(x) for x in rob if len(x) == minLen]
-    if len(keys) != 1:
-        target_vol = max(list(vol(subregions[index[key]], dim) for \
-                           key in keys))
-
-    else:
-        target_vol = vol(subregions[index[keys[0]]], dim)
+    uni_density = min(list(len(uni_rob_iter[key])/vol(subregions[key], dim) for \
+                           key in uni_rob_iter.keys()))
     
-    uni_number = minLen / target_vol
-    return uni_number
+    uni_rob_select = {}
+    for key in subregions.keys():
+        sub_num = int(uni_density * vol(subregions[key]))
+        uni_rob_select[key] = sample(uni_rob_iter[key], sub_num)
     
+    return uni_rob_select

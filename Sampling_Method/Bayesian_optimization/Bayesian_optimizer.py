@@ -9,12 +9,12 @@ from Sampling_Method.Uniform_random import uniform_sampling
 
 class Bayesian_Optimizer:
     
-    def __init__(self, X: np.array, Y: np.array, target_fun: str, subregion: list) -> np.array:
+    def __init__(self, X: np.array, Y: np.array, target_fun: str, subregion: list, n_bo: int) -> np.array:
         self.X = X
         self.Y = Y
         self.target = target_fun
         self.subregion = subregion
-        
+        self.n_bo = n_bo
  
    
     def test_function(self, X):
@@ -115,8 +115,8 @@ class Bayesian_Optimizer:
         '''
         i_dim = len(self.subregion[0])
         n_b = 50
-        n_bo = 5
-        for j in range(n_bo):
+        
+        for j in range(self.n_bo):
             model = GaussianProcessRegressor(
              kernel = Matern(nu=2.5),
             alpha = 1e-6,
