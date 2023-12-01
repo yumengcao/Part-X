@@ -1,7 +1,12 @@
 
+# print(sys.path)
+# sys.path.append('/Users/yumengcao/opt/anaconda3/bin/python')
+# sys.path.append('/usr/bin/python3')
+# sys.path.append('/Users/yumengcao/part_x_python')
 import numpy as np
 import argparse
 import logging
+
 
 from Functional.__tools__ import vol, undefined_vol, select_regions, _uni_number_
 from partitioning_algorithm.partitioning_algorithm import partitioning
