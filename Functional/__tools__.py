@@ -66,8 +66,8 @@ def select_regions(sample: np.array, subregion: list,
                 if subregion[j][0] > sample[i][j] or  \
                     sample[i][j] > subregion[j][1]:
                     tell = 1
-            else:
-                tell = 0
+                else:
+                    tell = 0
         if tell == 0:
             sample_select.append(sample[i])
             robust_select.append(robustness[i])
@@ -94,7 +94,7 @@ def _uni_number_(subregions: dict,
     
     uni_rob_select = {}
     for key in subregions.keys():
-        sub_num = int(uni_density * vol(subregions[key]))
+        sub_num = int(uni_density * vol(subregions[key], dim))
         uni_rob_select[key] = sample(uni_rob_iter[key], sub_num)
     
     return uni_rob_select

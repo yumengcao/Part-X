@@ -19,6 +19,6 @@ def robustness_values(sample: np.array, test_function: callable)-> list:
     '''
     Y = []
     for i in range(len(sample)):
-        Y.append(test_function(sample[i]))
+        Y.append(test_function(list(sample[i])))
 
     return Y

@@ -699,7 +699,7 @@ def Part_classify(sub_u: list, i_dim: int, i_B: int, alpha: float, test_function
                 TPP.append(TP)
                 TMP.append(TM)
                 H.append(fal_v)
-                evl.append(budgets) ``
+                evl.append(budgets) 
                 p_iter.append(fal_iter)
                 dk = Y_min.index(min(Y_min))
                 t_fal.append(True_fal)

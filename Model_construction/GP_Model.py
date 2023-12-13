@@ -1,5 +1,5 @@
 import numpy as np
-from scipy import stats
+
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import Matern as M, RBF as R, ConstantKernel as C 
 from Sampling_Method.Uniform_random import uniform_sampling
@@ -40,13 +40,24 @@ class GP_model:
 
     def confidence_interval(self):
         kernel = C(1.0, (1e-3, 1e3)) * R(10, (1e-2, 1e2))
-        gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=9)
+        gp = GaussianProcessRegressor()#kernel=kernel, n_restarts_optimizer = 7)
         gp.fit(self.X, self.Y)
-        N_gp_fal = int(self.fal_num*vol(self.subregion,self.dim)/self.undefined_vol) + self.N_gp
-        sample_gp = uniform_sampling(self.subregion, N_gp_fal, self.dim)
-        y_pred_st, sigma_st = gp.predict(sample_gp, return_std=True)  
+        N_gp_fal = int(self.fal_num*vol(self.subregion,self.dim)/self.undefined_vol) +\
+            self.N_gp
+        sample_gp = uniform_sampling(self.subregion,self.dim, N_gp_fal)
+        y_pred_st, sigma_st = gp.predict(sample_gp, return_std=True) 
+        # print('y_pred', y_pred_st)
+        # print('sigma', sigma_st) 
         idxs = np.random.randint(0, N_gp_fal, self.N_gp)##
         score = sum(y_pred_st[idxs])/self.N_gp
-        CI_low = min(y_pred_st[idxs]-1.96*sigma_st[idxs])
-        CI_upper = max(y_pred_st[idxs]+1.96*sigma_st[idxs])
+        y_pred_s = y_pred_st[idxs]
+        sigma_s = sigma_st[idxs]
+        
+        # pred_min = min(y_pred_s)#find maximum and minimum values of predicted values
+        # pred_max = max(y_pred_s)
+        # sigma_ss = max(sigma_s)
+        CI_low = min(y_pred_s - 1.96*sigma_s)
+        CI_upper = max(y_pred_s + 1.96*sigma_s)
+        # CI_low = pred_min - 1.96*sigma_ss#[i_s]
+        # CI_upper = pred_max + 1.96*sigma_ss#[i_ss]
         return score, CI_low, CI_upper

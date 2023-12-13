@@ -1,10 +1,12 @@
 
 import copy
 from Functional.__tools__ import select_regions
+import numpy as np
+
 class partitioning:
     def __init__(self, subregion:dict, 
                  dim_index:int, dim:int, uni_sample: dict, 
-                 uni_rob: dict,iter: int, part_number:int):
+                 uni_rob: dict, iteration: int, part_number:int):
         '''
        Partitioning Algorithm
        Parameters:
@@ -21,7 +23,7 @@ class partitioning:
         self.dim = dim
         self.uni_sample = uni_sample
         self.uni_rob = uni_rob
-        self.iter = iter
+        self.iteration = iteration
         self.part_number = part_number
         
         
@@ -51,10 +53,15 @@ class partitioning:
                 sub_series = str(eval(sub_index)*self.part_number + j - (self.part_number - 1))
                 part_sub[sub_series]= copy.deepcopy(self.subregion[sub_index])
                 part_sub[sub_series][self.dim_index] = [l_coordinate_lower, l_coordinate_upper]
-                if self.iter != 0:
+                if self.iteration != 0:
+                    #print('series:',sub_series)
                     uni_select_X[sub_series], uni_select_Y[sub_series] = select_regions(self.uni_sample[sub_index],
                                                         part_sub[sub_series], self.uni_rob[sub_index], 
                                                         self.dim)
+        # if self.iter == 0:
+        #     uni_select_X = np.array([])
+        #     uni_select_Y = np.array([])
+            
 
         return part_sub, uni_select_X, uni_select_Y
             

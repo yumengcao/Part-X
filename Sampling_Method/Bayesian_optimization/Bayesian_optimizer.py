@@ -129,7 +129,7 @@ class Bayesian_Optimizer:
             # sample the point
             bo_y = self.test_function(bo_x)
             # add the data to the dataset
-            self.X.append(bo_x)
+            self.X = np.vstack((self.X,bo_x))
             self.Y.append(bo_y)
         
 #b_o = Bayesian_Optimizer(s:np.array, Y:np.array, ' (M[0]**2+M[1]-11)**2+(M[0]+ M[1]**2-7)**2 -90', list: sub_r)
