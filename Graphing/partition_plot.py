@@ -1,11 +1,11 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import numpy as np
-def part_plot(theta_minus, theta_plus, theta_undefined, region, test_function):
+def part_plot(theta_minus, theta_plus, theta_undefined, region, test_function, method):
     
     fig = plt.figure(figsize=(8,8))
     ax = fig.add_subplot(111) 
-    plt.title("subregions")
+    plt.title(method + '_'+ "subregions")
     plt.xlim(region[0][0], region[0][1]) 
     plt.ylim(region[1][0], region[1][1])
     

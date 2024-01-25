@@ -6,10 +6,13 @@ from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import Matern
 from numpy import argmax
 from Sampling_Method.Uniform_random import uniform_sampling
+from typing import Tuple
+from numpy.typing import NDArray
+
 
 class Bayesian_Optimizer:
     
-    def __init__(self, X: np.array, Y: np.array, target_fun: str, subregion: list, n_bo: int) -> np.array:
+    def __init__(self, X: np.array, Y: np.array, target_fun: str, subregion: list, n_bo: int) -> Tuple[NDArray]:
         self.X = X
         self.Y = Y
         self.target = target_fun
@@ -42,8 +45,8 @@ class Bayesian_Optimizer:
         z = (best - mean + 0.5)/std#- xi)/std
         return norm.cdf(z)
     
-    def EI(self, mean, std, y_max):
-        a = (y_max - mean - 2)#- xi)
+    def EI(self, mean, std, y_min):
+        a = (y_min - mean )#- xi)
         z = a / std
         return a * norm.cdf(z) + std * norm.pdf(z)
     
@@ -117,12 +120,11 @@ class Bayesian_Optimizer:
         n_b = 50
         
         for j in range(self.n_bo):
-            model = GaussianProcessRegressor(
-             kernel = Matern(nu=2.5),
-            alpha = 1e-6,
-            normalize_y = True,
-            n_restarts_optimizer = len(self.X),
-            random_state = None,)
+            model = GaussianProcessRegressor()#kernel = Matern(nu=2.5),
+            # alpha = 1e-6,
+            # normalize_y = True,
+            # n_restarts_optimizer = len(self.X),
+            # random_state = None,)
             model.fit(self.X, self.Y)
             # select the next point to sample
             bo_x = self.opt_acquisition(model, n_b, i_dim)

@@ -1,5 +1,6 @@
 import numpy as np
 from random import sample
+import copy
 
 def vol(sub_u:list,i_dim: int) -> int:    #calculate the volume of undefined area
     '''
@@ -91,10 +92,21 @@ def _uni_number_(subregions: dict,
     
     uni_density = min(list(len(uni_rob_iter[key])/vol(subregions[key], dim) for \
                            key in uni_rob_iter.keys()))
-    
     uni_rob_select = {}
     for key in subregions.keys():
         sub_num = int(uni_density * vol(subregions[key], dim))
         uni_rob_select[key] = sample(uni_rob_iter[key], sub_num)
     
     return uni_rob_select
+
+def del_grouping(theta_plus_iter: dict, theta_minus_iter: dict, grouping: dict) -> dict:
+    
+    for key in grouping['group1'].copy().keys():
+        if key in theta_minus_iter.keys():
+            del grouping['group1'][key]
+    
+    for key in grouping['group6'].copy().keys():
+        if key in theta_plus_iter.keys():
+            del grouping['group6'][key]
+    
+    return grouping
