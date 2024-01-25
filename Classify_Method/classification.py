@@ -4,11 +4,13 @@ def region_classify(subregion: list, CI_lower: float,
                     theta_minus_iter: dict, theta_plus_iter: dict, iteration: int):
     '''
     subregion CIassification
-    input: subregion (list): target subregion
+    
+    input: 
+    subregion (list): target subregion
     CI_lower (int) : lower bound of the subregion
     CI_upper (int): upper bound of the CI of the subregion
-    level_quantile (list): level quantile of this iteration 
-    score (int): score of the subregion
+    index (str): serial number of subregion
+    iteration (int): iteration of the algorithm
 
     '''
 
@@ -28,6 +30,15 @@ def group_classify(level_quantile: list, theta_plus_iter: dict,
                    theta_minus_iter: dict, theta_undefined: dict, score_iter: dict, 
                    subregions: dict) -> dict:
    
+    '''
+     method to update classification results with grouping method criteria
+   
+   input: 
+   level_quantile(list): group criteria
+   score_iter (dict): subregions serial number with its corresponding scores
+   subregions (dict): target subregions union with serla number
+   
+    '''
     if theta_plus_iter != {}:
         for key in theta_plus_iter.copy().keys():      
             if score_iter[key] < level_quantile[2]:

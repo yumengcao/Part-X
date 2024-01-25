@@ -5,7 +5,7 @@ def criteria( robust_unif: list):
     '''
     calculate the grouping criteria
     
-    Input：
+    Input:
     robust_unif (list): summary of robustness in subregions
 
     return:
@@ -22,6 +22,7 @@ def _grouping_ (scores: dict, group_crit: list, subregions: dict) -> dict:
 
     Input: 
     scores (dict): list if subregions' scores in this iteration
+    group_crit (list): grouping criteria
     subregions (dict): dictionary of subregions
 
     Return:

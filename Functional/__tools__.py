@@ -99,14 +99,14 @@ def _uni_number_(subregions: dict,
     
     return uni_rob_select
 
-def del_grouping(theta_plus_iter: dict, theta_minus_iter: dict, grouping: dict) -> dict:
+# def del_grouping(theta_plus_iter: dict, theta_minus_iter: dict, grouping: dict) -> dict:
     
-    for key in grouping['group1'].copy().keys():
-        if key in theta_minus_iter.keys():
-            del grouping['group1'][key]
+#     for key in grouping['group1'].copy().keys():
+#         if key in theta_minus_iter.keys():
+#             del grouping['group1'][key]
     
-    for key in grouping['group6'].copy().keys():
-        if key in theta_plus_iter.keys():
-            del grouping['group6'][key]
+#     for key in grouping['group6'].copy().keys():
+#         if key in theta_plus_iter.keys():
+#             del grouping['group6'][key]
     
-    return grouping
+#     return grouping
