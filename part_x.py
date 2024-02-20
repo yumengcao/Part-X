@@ -13,8 +13,8 @@ import warnings
 import copy
 warnings.filterwarnings('ignore')
 import time
-
-from Functional.__tools__ import vol, undefined_vol, _uni_number_, del_grouping
+from treelib import Node, Tree
+from Functional.__tools__ import vol, undefined_vol, _uni_number_ 
 from partitioning_algorithm.partitioning_algorithm import partitioning
 from Sampling_Method.Uniform_random import uniform_sampling, robustness_values
 from Model_construction.GP_Model import GP_model
@@ -53,7 +53,8 @@ class Part_X:
             if self.method == 'BO':
                 uni_number = 10
         else:
-           uni_number = upd_sample_g[subregion_index]
+            
+            uni_number = upd_sample_g[subregion_index]
         return uni_number
     
     def test_function(self, X):
@@ -64,8 +65,11 @@ class Part_X:
         region = eval(self.region)
         dim = len(region)
         budget_cum = 0
-        dim_index = list(range(0, dim ))*(round(100/dim) +1) ##iteration = 100
-        Tree = {}
+        re_num = 1
+        #dim_index = list(range(0, dim ))*(round(100/dim) +1) ##iteration = 100
+        
+        tree = Tree()
+        tree.create_node("Root", '1', data = {'region': region, 'dim_index': 1})
         uni_sample_iter = {}
         uni_rob_iter = {}
         grouping = {}
@@ -91,16 +95,19 @@ class Part_X:
                 und_v > 0.01 * region_vol:
                 
                 print(budget_cum)
-                #print(group_sample_num)
-                branching = partitioning(theta_undefined, dim_index[iteration], dim, 
-                                        uni_sample_iter, uni_rob_iter, iteration,
-                                        group_result, self.grouping, group_sample_num, self.iter_group, region_vol, part_number = 2)
                 
-                part_subregions, uni_select_X, uni_select_Y, upd_sample_g = branching.partitioning_algorithm()
+                #print(tree.get_node('1').data)
+                #print('group' ,group_result)
+                branching = partitioning(theta_undefined, dim, 
+                                        uni_sample_iter, uni_rob_iter, iteration,
+                                        group_result, self.grouping, group_sample_num, self.iter_group, \
+                                        region_vol, tree,re_num)
+                
+                part_subregions, uni_select_X, uni_select_Y, re_num, upd_sample_g = branching.partitioning_algorithm()
                 #print(uni_select_X)
                 #print('subregions', part_subregions)
                 #print('upd sample: ', upd_sample_g)
-                Tree['level'+ str(iteration + 1)] = part_subregions
+                
                 #print('len:', [len(uni_select_X[key]) for key in uni_select_X.keys()])
                 uni_sample_iter = {}
                 uni_rob_iter = {}
@@ -110,6 +117,7 @@ class Part_X:
                 #print('partition result subregion: ', part_subregions.keys())
                 
                 for key in part_subregions.keys():
+                    
                     subregion = part_subregions[key]
                     #print('subregion', subregion)
                     uni_number = self.uni_sample_num(iteration, key, upd_sample_g, subregion, dim, 
@@ -185,7 +193,11 @@ class Part_X:
                
                 if self.grouping != '0' and iteration >= self.iter_group:
                     uni_rob_select = _uni_number_(part_subregions, uni_rob_iter, dim)
-                    group_crit = criteria((list(uni_rob_select.values())[0]))
+                    #print(list(uni_rob_select.values()))
+                    rob_list = list(uni_rob_select.values())
+                    
+                    up_rob_list = sum(rob_list,[])
+                    group_crit = criteria(up_rob_list [0])
                     group_sample_num, group_result = _grouping_(score_iter, group_crit, 
                                                                 part_subregions)
                     
@@ -210,7 +222,7 @@ class Part_X:
         print('Running time: %s Seconds'%(end-start))
         np.savetxt('output_sam.txt', sample_all)
         np.savetxt('output_rob.txt', rob_all)
-        return theta_minus, theta_plus, theta_undefined, budget_cum, group_result, Tree, sample_all, rob_all         
+        return theta_minus, theta_plus, theta_undefined, budget_cum, group_result, sample_all, rob_all         
 
 if __name__ == "__main__":
 
@@ -259,7 +271,7 @@ if __name__ == "__main__":
     bart = Part_X(args.region, args.method, args.function, args.budget, args.grouping, args.iter_group)
     logging.info("Input region: {}".format(args.region))
     #logging.info("Outputs: {}".format(args.output))
-    theta_minus, theta_plus, theta_undefined, budget_cum, grouping, Tree, sample_all, rob_all  = bart.__exe__()
+    theta_minus, theta_plus, theta_undefined, budget_cum, grouping, sample_all, rob_all  = bart.__exe__()
     part_plot(theta_minus, theta_plus, theta_undefined, eval(args.region), args.function, args.method+'_' + args.grouping)
     sample_plot(sample_all, rob_all, args.method, args.grouping)
     if args.grouping == '1':
