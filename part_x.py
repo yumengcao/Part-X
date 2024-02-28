@@ -14,7 +14,7 @@ import copy
 warnings.filterwarnings('ignore')
 import time
 
-from Functional.__tools__ import vol, undefined_vol, _uni_number_, del_grouping
+from Functional.__tools__ import vol, undefined_vol, _uni_number_
 from partitioning_algorithm.partitioning_algorithm import partitioning
 from Sampling_Method.Uniform_random import uniform_sampling, robustness_values
 from Model_construction.GP_Model import GP_model
@@ -76,7 +76,8 @@ class Part_X:
         sample_all = np.empty([0, dim])
         rob_all = np.empty([0, 1])
         group_result = {}
-        for iteration in range(100):
+        density = 0
+        for iteration in range(13):
             score_iter = {}
             theta_minus_iter = {}
             theta_plus_iter = {}
@@ -94,7 +95,7 @@ class Part_X:
                 #print(group_sample_num)
                 branching = partitioning(theta_undefined, dim_index[iteration], dim, 
                                         uni_sample_iter, uni_rob_iter, iteration,
-                                        group_result, self.grouping, group_sample_num, self.iter_group, region_vol, part_number = 2)
+                                        group_result, self.grouping, group_sample_num, density, region_vol, part_number = 2)
                 
                 part_subregions, uni_select_X, uni_select_Y, upd_sample_g = branching.partitioning_algorithm()
                 #print(uni_select_X)
@@ -175,16 +176,16 @@ class Part_X:
                     exe_gp = GP_model(subr_sample, subr_robust, dim, subregion, und_v)
                     score, CI_lower, CI_upper = exe_gp.confidence_interval()
                     score_iter[key] = score
-                    #print('CI_lower', CI_lower)
+                    #print('2lower', CI_lower)
                     #print('CI_upper', CI_upper)
                     theta_minus_iter, theta_plus_iter, theta_undefined = region_classify(subregion, 
                                                                                         CI_lower, CI_upper, key,theta_undefined, 
-                                                                                        theta_minus_iter, theta_plus_iter, iteration)
+                                                                                        theta_minus_iter, theta_plus_iter, iteration, density)
             
                     
-               
-                if self.grouping != '0' and iteration >= self.iter_group:
-                    uni_rob_select = _uni_number_(part_subregions, uni_rob_iter, dim)
+                uni_rob_select, density = _uni_number_(part_subregions, uni_rob_iter, dim)
+                if self.grouping != '0' and density >= 15:
+                   
                     group_crit = criteria((list(uni_rob_select.values())[0]))
                     group_sample_num, group_result = _grouping_(score_iter, group_crit, 
                                                                 part_subregions)

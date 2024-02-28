@@ -7,7 +7,7 @@ class partitioning:
     def __init__(self, subregions:dict, 
                  dim_index:int, dim:int, uni_sample: dict, 
                  uni_rob: dict, iteration: int, group_result:dict, grouping: str,
-                 group_sample_num: dict, iter_group:int, region_vol: float, part_number:int,
+                 group_sample_num: dict, density:float, region_vol: float, part_number:int,
                  ):
         '''
        Partitioning Algorithm
@@ -37,7 +37,8 @@ class partitioning:
         self.group_result = group_result
         self.grouping = grouping
         self.group_sample_num = group_sample_num
-        self.iter_group = iter_group
+        #self.iter_group = iter_group
+        self.density = density
         self.region_vol = region_vol
         self.part_number = part_number
         
@@ -63,16 +64,16 @@ class partitioning:
             sl_coordinate_upper = self.subregions[sub_index][self.dim_index][1]
             sl_coordinate_lower = self.subregions[sub_index][self.dim_index][0]
            
-            # if self.iteration > self.iter_group and self.grouping != '0' :
-            #     #if vol(self.subregions[sub_index], self.dim) < 0.125* self.region_vol:
-            #     if sub_index in self.group_result['group1'] or sub_index in self.group_result['group6']:#\
-            #         #or sub_index in self.group_result['group5']:
-            #         non_part_series = str(eval(sub_index)*self.part_number)
-            #         part_sub[non_part_series] = self.subregions[sub_index]
-            #         uni_select_X[non_part_series] = self.uni_sample[sub_index]
-            #         uni_select_Y[non_part_series] = self.uni_rob[sub_index]
-            #         upd_sample_g[non_part_series] = self.group_sample_num[sub_index]
-            #         continue
+            if self.density > 15 and self.grouping != '0' :
+                #if vol(self.subregions[sub_index], self.dim) < 0.125* self.region_vol:
+                if sub_index in  sub_index in self.group_result['group2']\
+                    or sub_index in self.group_result['group3']:
+                    non_part_series = str(eval(sub_index)*self.part_number)
+                    part_sub[non_part_series] = self.subregions[sub_index]
+                    uni_select_X[non_part_series] = self.uni_sample[sub_index]
+                    uni_select_Y[non_part_series] = self.uni_rob[sub_index]
+                    upd_sample_g[non_part_series] = self.group_sample_num[sub_index]
+                    continue
 
             for j in range(self.part_number): 
                 l_coordinate_lower = float((sl_coordinate_upper - sl_coordinate_lower))* j / self.part_number+ \
@@ -90,7 +91,8 @@ class partitioning:
                     uni_select_X[sub_series], uni_select_Y[sub_series] = select_regions(self.uni_sample[sub_index],
                                                         part_sub[sub_series], self.uni_rob[sub_index], 
                                                         self.dim)
-                    if self.grouping == '1' and self.iteration > self.iter_group:
+                    if self.grouping == '1' and self.density > 15: 
+                    #self.iteration > self.iter_group:
                         upd_sample_g[str(sub_series)] = self.group_sample_num[sub_index]
                     
                     # if self.grouping == '1' and self.iteration > self.iter_group:

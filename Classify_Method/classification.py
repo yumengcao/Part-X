@@ -1,7 +1,7 @@
 def region_classify(subregion: list, CI_lower: float, 
                     CI_upper: float,  
                     index: str, theta_undefined: dict, 
-                    theta_minus_iter: dict, theta_plus_iter: dict, iteration: int):
+                    theta_minus_iter: dict, theta_plus_iter: dict, iteration: int, density: float):
     '''
     subregion CIassification
     
@@ -14,10 +14,10 @@ def region_classify(subregion: list, CI_lower: float,
 
     '''
 
-    if CI_lower > 0 and iteration >= 4:
+    if CI_lower > 0 and density > 5:#iteration >= 4:
         theta_plus_iter[index] = subregion
 
-    elif CI_upper < 0 and iteration >= 4:
+    elif CI_upper < 0 and density > 5:#iteration >= 4:
         theta_minus_iter[index] = subregion
     
     else:

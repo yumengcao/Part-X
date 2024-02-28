@@ -92,12 +92,13 @@ def _uni_number_(subregions: dict,
     
     uni_density = min(list(len(uni_rob_iter[key])/vol(subregions[key], dim) for \
                            key in uni_rob_iter.keys()))
+    print('density:' , uni_density)
     uni_rob_select = {}
     for key in subregions.keys():
         sub_num = int(uni_density * vol(subregions[key], dim))
         uni_rob_select[key] = sample(uni_rob_iter[key], sub_num)
     
-    return uni_rob_select
+    return uni_rob_select, uni_density
 
 # def del_grouping(theta_plus_iter: dict, theta_minus_iter: dict, grouping: dict) -> dict:
     
