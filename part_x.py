@@ -14,7 +14,7 @@ import copy
 warnings.filterwarnings('ignore')
 import time
 
-from Functional.__tools__ import vol, undefined_vol, _uni_number_, del_grouping
+from Functional.__tools__ import vol, undefined_vol, _uni_number_
 from partitioning_algorithm.partitioning_algorithm import partitioning
 from Sampling_Method.Uniform_random import uniform_sampling, robustness_values
 from Model_construction.GP_Model import GP_model
@@ -182,7 +182,7 @@ class Part_X:
                                                                                         theta_minus_iter, theta_plus_iter, iteration)
             
                     
-               
+                
                 if self.grouping != '0' and iteration >= self.iter_group:
                     uni_rob_select = _uni_number_(part_subregions, uni_rob_iter, dim)
                     group_crit = criteria((list(uni_rob_select.values())[0]))
@@ -191,8 +191,8 @@ class Part_X:
                     
                     grouping['level'+ str(iteration + 1)] = group_result
 
-                    theta_minus_iter, theta_plus_iter, theta_undefined = group_classify(group_crit, theta_plus_iter, 
-                                                                                      theta_minus_iter, theta_undefined, score_iter,  part_subregions)
+                    #theta_minus_iter, theta_plus_iter, theta_undefined = group_classify(group_crit, theta_plus_iter, 
+                                                                                      #theta_minus_iter, theta_undefined, score_iter,  part_subregions)
                     
                 theta_plus['level'+ str(iteration + 1)] = theta_plus_iter
                 theta_minus['level'+ str(iteration + 1)] = theta_minus_iter

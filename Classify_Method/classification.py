@@ -41,14 +41,14 @@ def group_classify(level_quantile: list, theta_plus_iter: dict,
     '''
     if theta_plus_iter != {}:
         for key in theta_plus_iter.copy().keys():      
-            if score_iter[key] < level_quantile[2]:
-                del theta_plus_iter[key] 
-                theta_undefined[key] = subregions[key]
+            #if score_iter[key] < level_quantile[2]:
+                #del theta_plus_iter[key] 
+            theta_undefined[key] = subregions[key]
     
     if theta_minus_iter != {}:
        
         for key in theta_minus_iter.copy().keys():      
-            if score_iter[key] > level_quantile[4]:
-                del theta_minus_iter[key] 
-                theta_undefined[key] = subregions[key]
+            #if score_iter[key] > level_quantile[4]:
+                #del theta_minus_iter[key] 
+            theta_undefined[key] = subregions[key]
     return theta_minus_iter, theta_plus_iter, theta_undefined
