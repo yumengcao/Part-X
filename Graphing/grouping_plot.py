@@ -112,6 +112,18 @@ def group_plot(grouping, theta_minus, theta_plus, region, test_function, method)
                 edgecolor='black'
             )
         )
+    g7_region = grouping['group7'].copy()
+    for key in g7_region.keys():
+        ax.add_patch(
+            patches.Rectangle(
+                (g7_region[key][0][0], g7_region[key][1][0]), # (x,y)
+                g7_region[key][0][1] - g7_region[key][0][0], # weight
+                g7_region[key][1][1] - g7_region[key][1][0],  # height
+                alpha = .5,
+                facecolor='yellow',
+                edgecolor='black'
+            )
+        )
     xx = np.arange(region[0][0],region[0][1],0.05)
     yy = np.arange(region[1][0],region[1][1],0.05)
     a= test_function.replace('X[1]', 'Y')
@@ -124,8 +136,9 @@ def group_plot(grouping, theta_minus, theta_plus, region, test_function, method)
     g_3 = mpatches.Patch(color='pink', label='group 3') 
     g_4 = mpatches.Patch(color='purple', label='group 4') 
     g_5 = mpatches.Patch(color='olive', label='group 5')  
-    g_6 = mpatches.Patch(color='green', label='group 6') 
-    plt.legend(handles=[g_1, g_2, g_3, g_4, g_5, g_6]) 
+    g_6 = mpatches.Patch(color='green', label='group 6')
+    g_7 = mpatches.Patch(color='yellow', label='group 7')  
+    plt.legend(handles=[g_1, g_2, g_3, g_4, g_5, g_6, g_7]) 
     #plt.legend(['red', 'orange', 'pink', 'purple', 'oliver', 'green'])#, ['g1', 'g2', 'g3', 'g4', 'g5', 'g6'], loc='best',
            #title='Groups')
 

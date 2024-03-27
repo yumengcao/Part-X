@@ -9,7 +9,7 @@ from sklearn.gaussian_process.kernels import Matern as M, RBF as R, ConstantKern
 class GP_model:
     
     def __init__(self, X:np.array, Y: np.array, dim: int, subregion, 
-                 undefined_vol: int, N_gp: int = 50, fal_num:int = 10):
+                 undefined_vol: int, N_gp: int = 1000, fal_num:int = 10):
         '''
         Generate the micro Gaussian Process model on a subregion
 
@@ -49,7 +49,7 @@ class GP_model:
         # print('y_pred', y_pred_st)
         # print('sigma', sigma_st) 
         idxs = np.random.randint(0, N_gp_fal, self.N_gp)##
-        score = sum(y_pred_st[idxs])/self.N_gp
+        score = [sum(y_pred_st[idxs])/self.N_gp, np.sqrt(sum(sigma_st[idxs])/(self.N_gp)**2)]
         y_pred_s = y_pred_st[idxs]
         sigma_s = sigma_st[idxs]
         

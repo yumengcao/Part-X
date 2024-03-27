@@ -109,3 +109,53 @@ def combine_algo(subregion1, subregion2, part_index, dim):
     
     return new_subr
     
+def dist_group(score:dict, subregions: dict):
+    
+    group_result = {}
+    group_sample_num = {}
+    group_result['group1'] = {}
+    group_result['group2'] = {}
+    group_result['group3'] = {}
+    group_result['group4'] = {}
+    group_result['group5'] = {}
+    group_result['group6'] = {}
+    group_result['group7'] = {}
+    score_value = list(score.values())
+    exp_list = [score_value[k][0] for k in range(0, len(score_value))]
+    var_list = [score_value[j][1] for j in range(0, len(score_value))]
+    group_crit1 = []
+    for i in [5, 25, 50, 75, 95]:
+        group_crit1.append(np.percentile(exp_list, i))
+   
+    group_crit2 = np.percentile(var_list, 50)
+    
+    for key in subregions.keys():
+        if score[key][1] > group_crit2:
+            group_result['group7'][key] = subregions[key]
+            group_sample_num[key] = 7
+            continue
+        if score[key][0] < group_crit1[0]:
+            group_result['group1'][key] = subregions[key]
+            group_sample_num[key] = 5
+            continue
+        if group_crit1[0]< score[key][0] < group_crit1[1]:
+            group_sample_num[key] = 7
+            group_result['group2'][key] = subregions[key]
+            continue
+        if group_crit1[1]< score[key][0] <group_crit1[2]:
+            group_sample_num[key] = 10
+            group_result['group3'][key] = subregions[key]
+            continue
+        if group_crit1[2]< score[key][0] <group_crit1[3]:
+            group_sample_num[key] = 10
+            group_result['group4'][key] = subregions[key]
+            continue
+        if group_crit1[3]< score[key][0] <group_crit1[4]:
+            group_sample_num[key] = 7
+            group_result['group5'][key] = subregions[key]
+            continue
+        if score[key][0] > group_crit1[4]:
+            group_sample_num[key] = 5
+            group_result['group6'][key] = subregions[key]
+            
+    return group_sample_num, group_result, group_crit2
