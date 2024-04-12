@@ -7,7 +7,7 @@ from treelib import Node, Tree
 class partitioning:
     def __init__(self, subregions:dict,  dim:int, uni_sample: dict, 
                  uni_rob: dict, iteration: int, group_result:dict, grouping: str,
-                 group_sample_num: dict, iter_group:int, region_vol: float, tree,
+                 group_sample_num: dict, region_vol: float, tree,
                  re_num: int):
         '''
        Partitioning Algorithm
@@ -37,7 +37,6 @@ class partitioning:
         self.group_result = group_result
         self.grouping = grouping
         self.group_sample_num = group_sample_num
-        self.iter_group = iter_group
         self.region_vol = region_vol
         self.tree = tree
         self.re_num = re_num
@@ -57,7 +56,6 @@ class partitioning:
         uni_select_Y = {}
         part_sub = {}
         upd_sample_g = {}
-        
         for sub_index in self.subregions.keys():
             self.__condition__(sub_index)
             
@@ -69,9 +67,9 @@ class partitioning:
             sl_coordinate_upper = self.subregions[sub_index][dim_index][1]
             sl_coordinate_lower = self.subregions[sub_index][dim_index][0]
            
-            if self.iteration > self.iter_group and self.grouping != '0' :
+            if self.grouping != '0' and self.iteration!= 0 :
                 #if vol(self.subregions[sub_index], self.dim) < 0.125* self.region_vol:
-                if sub_index in self.group_result['group1'] or sub_index in self.group_result['group6']:#\
+                if sub_index in self.group_result['group6']:#\
                     #or sub_index in self.group_result['group5']:
                     self.re_num +=1
                     self.tree.create_node("n"+str(self.re_num), str(self.re_num), parent = str(sub_index), data = 
@@ -84,13 +82,17 @@ class partitioning:
                     continue
                 
             if self.iteration != 0:
-                if sub_index in self.group_result['group2'] or sub_index in self.group_result['group5']:
+                if sub_index in self.group_result['group2'] \
+                    or sub_index in self.group_result['group1'] or sub_index in self.group_result['group4']  or sub_index in self.group_result['group5']:
                     part_number = 2
-                if sub_index in self.group_result['group3'] or sub_index in self.group_result['group4']:
+                if sub_index in self.group_result['group3'] :
+                    part_number = 3
+                if sub_index in self.group_result['group7']:
                     part_number = 3
             else:
                 part_number = 2
-            for j in range(part_number): 
+                
+            for j in range(0, part_number): 
                 
                 
                 l_coordinate_lower = float((sl_coordinate_upper - sl_coordinate_lower))* j / part_number+ \
@@ -110,15 +112,18 @@ class partitioning:
                     uni_select_X[str(self.re_num)], uni_select_Y[str(self.re_num)] = select_regions(self.uni_sample[sub_index],
                                                         part_sub[str(self.re_num)], self.uni_rob[sub_index], 
                                                         self.dim)
-                    if self.grouping == '1' and self.iteration > self.iter_group:
+                    if self.grouping == '1':
                         upd_sample_g[str(self.re_num)] = self.group_sample_num[sub_index]
-                    
+                else: 
+                    upd_sample_g[str(self.re_num)] = 10    
                     # if self.grouping == '1' and self.iteration > self.iter_group:
                     #     #if vol(self.subregions[sub_index], self.dim) <= 0.125* self.region_vol:
                     #     upd_sample_g[str(sub_series)] = self.group_sample_num[sub_index]
                     
-      
-        print(self.tree.show(stdout=False))
-            
+        
+        #print(upd_sample_g)  
+    
+        #print(self.tree.show(stdout=False))
+         
         return part_sub, uni_select_X, uni_select_Y, self.re_num, upd_sample_g
             

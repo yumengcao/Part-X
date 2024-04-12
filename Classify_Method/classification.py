@@ -14,10 +14,10 @@ def region_classify(subregion: list, CI_lower: float,
 
     '''
 
-    if CI_lower > 0 and iteration >= 4:
+    if CI_lower > 0:
         theta_plus_iter[index] = subregion
 
-    elif CI_upper < 0 and iteration >= 4:
+    elif CI_upper < 0:
         theta_minus_iter[index] = subregion
     
     else:

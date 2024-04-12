@@ -20,7 +20,7 @@ from Sampling_Method.Uniform_random import uniform_sampling, robustness_values
 from Model_construction.GP_Model import GP_model
 from Classify_Method.classification import region_classify, group_classify
 from Sampling_Method.Bayesian_optimization.Bayesian_optimizer import Bayesian_Optimizer
-from Grouping_Method._group_ import criteria, _grouping_
+from Grouping_Method._group_ import criteria, dist_group
 from Graphing.partition_plot import part_plot
 from Graphing.grouping_plot import group_plot
 from Graphing.sampling_plot import sample_plot
@@ -28,7 +28,7 @@ from Graphing.sampling_plot import sample_plot
 class Part_X:
 
     def __init__(self, region, method, function, 
-                 budget, grouping, iter_group):
+                 budget, grouping):
         '''
         region: region need to be classified
         method: 'uniform_sampling', 'BO'
@@ -41,13 +41,10 @@ class Part_X:
         self.function = function
         self.budget = budget
         self.grouping = grouping
-        self.iter_group = iter_group
-
-    def uni_sample_num(self, iteration: int, 
-                       subregion_index: str, upd_sample_g: dict, subregion:list, dim: int, 
-                       region_vol: float):
+   
+    def uni_sample_num(self, subregion_index: str, upd_sample_g: dict):
         
-        if self.grouping == '0' or iteration <= self.iter_group: #or \
+        if self.grouping == '0': #or \
             #vol(subregion, dim) >= 0.125* region_vol:
             uni_number = 20
             if self.method == 'BO':
@@ -80,17 +77,14 @@ class Part_X:
         sample_all = np.empty([0, dim])
         rob_all = np.empty([0, 1])
         group_result = {}
-        for iteration in range(100):
+        for iteration in range(15):
             score_iter = {}
             theta_minus_iter = {}
             theta_plus_iter = {}
             if iteration == 0: 
                 theta_undefined = {'1': region}
             und_v = undefined_vol(theta_undefined)
-            #print('undefined:', theta_undefined)
-            #print('vol', und_v, 'region:', region_vol)
-            #print('bud', budget_cum)
-            #print('bud1', self.budget)
+
             if budget_cum < self.budget and \
                 und_v > 0.01 * region_vol:
                 
@@ -100,15 +94,11 @@ class Part_X:
                 #print('group' ,group_result)
                 branching = partitioning(theta_undefined, dim, 
                                         uni_sample_iter, uni_rob_iter, iteration,
-                                        group_result, self.grouping, group_sample_num, self.iter_group, \
+                                        group_result, self.grouping, group_sample_num,
                                         region_vol, tree,re_num)
                 
                 part_subregions, uni_select_X, uni_select_Y, re_num, upd_sample_g = branching.partitioning_algorithm()
-                #print(uni_select_X)
-                #print('subregions', part_subregions)
-                #print('upd sample: ', upd_sample_g)
                 
-                #print('len:', [len(uni_select_X[key]) for key in uni_select_X.keys()])
                 uni_sample_iter = {}
                 uni_rob_iter = {}
                 theta_minus_iter = {}
@@ -120,8 +110,7 @@ class Part_X:
                     
                     subregion = part_subregions[key]
                     #print('subregion', subregion)
-                    uni_number = self.uni_sample_num(iteration, key, upd_sample_g, subregion, dim, 
-                                                     region_vol)
+                    uni_number = self.uni_sample_num(key, upd_sample_g)
                     sample_uni = uniform_sampling(subregion, dim, uni_number)
                     robustness_uni = robustness_values(sample_uni, self.test_function)
                     budget_cum += uni_number
@@ -191,20 +180,14 @@ class Part_X:
             
                     
                
-                if self.grouping != '0' and iteration >= self.iter_group:
-                    uni_rob_select = _uni_number_(part_subregions, uni_rob_iter, dim)
-                    #print(list(uni_rob_select.values()))
-                    rob_list = list(uni_rob_select.values())
-                    
-                    up_rob_list = sum(rob_list,[])
-                    group_crit = criteria(up_rob_list [0])
-                    group_sample_num, group_result = _grouping_(score_iter, group_crit, 
-                                                                part_subregions)
-                    
+                if self.grouping != '0':
+                    #print('score', score_iter)
+                    group_sample_num, group_result, group_crit2 = dist_group(score_iter, part_subregions)
                     grouping['level'+ str(iteration + 1)] = group_result
+                    
 
-                    theta_minus_iter, theta_plus_iter, theta_undefined = group_classify(group_crit, theta_plus_iter, 
-                                                                                      theta_minus_iter, theta_undefined, score_iter,  part_subregions)
+                    #theta_minus_iter, theta_plus_iter, theta_undefined = group_classify(group_crit, theta_plus_iter, 
+                                                                                      #theta_minus_iter, theta_undefined, score_iter,  part_subregions)
                     
                 theta_plus['level'+ str(iteration + 1)] = theta_plus_iter
                 theta_minus['level'+ str(iteration + 1)] = theta_minus_iter
@@ -217,7 +200,7 @@ class Part_X:
               'budget:', budget_cum, "---------------------------------------" )#,\
               #'group:', grouping, "---------------------------------------")
                   #'Tree:', Tree  )
-        
+        print('undefined volumn', und_v)
         end = time.time()
         print('Running time: %s Seconds'%(end-start))
         np.savetxt('output_sam.txt', sample_all)
@@ -260,20 +243,16 @@ if __name__ == "__main__":
         help = "use grouping method?"
     )
     
-    arguments_parser.add_argument(
-        "-it_g",
-        "--iter_group",
-        type = int,
-        help = "iteration to start groupingt"
-    )
+
     args = arguments_parser.parse_args()
     # Convert data
-    bart = Part_X(args.region, args.method, args.function, args.budget, args.grouping, args.iter_group)
+    bart = Part_X(args.region, args.method, args.function, args.budget, args.grouping)
     logging.info("Input region: {}".format(args.region))
     #logging.info("Outputs: {}".format(args.output))
     theta_minus, theta_plus, theta_undefined, budget_cum, grouping, sample_all, rob_all  = bart.__exe__()
-    part_plot(theta_minus, theta_plus, theta_undefined, eval(args.region), args.function, args.method+'_' + args.grouping)
-    sample_plot(sample_all, rob_all, args.method, args.grouping)
+    part_plot(theta_minus, theta_plus, theta_undefined, eval(args.region), args.function, args.method+'_' + args.grouping, \
+        sample_all, rob_all, args.grouping)
+    #sample_plot(sample_all, rob_all, args.method, args.grouping)
     if args.grouping == '1':
         group_plot(grouping, theta_minus, theta_plus, eval(args.region), args.function, args.method+'_' + args.grouping)
     logging.info("---- Process end ----")
