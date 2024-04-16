@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import numpy as np
+import math
 from Graphing.sampling_plot import sample_plot
 def part_plot(theta_minus, theta_plus, theta_undefined, region, test_function, method, sample_all, rob, group):
     
@@ -55,6 +56,8 @@ def part_plot(theta_minus, theta_plus, theta_undefined, region, test_function, m
     yy = np.arange(region[1][0],region[1][1],0.05)
     a= test_function.replace('X[1]', 'Y')
     b = a.replace('X[0]', 'X')
+   # print(b)
+    #print(type(b))
     X, Y  = np.meshgrid(xx, yy)
     Z = eval(b) 
     contour = plt.contour(X,Y,Z,[0],colors='k')
