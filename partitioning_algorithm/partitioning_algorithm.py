@@ -114,6 +114,7 @@ class partitioning:
                                                         self.dim)
                     if self.grouping == '1':
                         upd_sample_g[str(self.re_num)] = self.group_sample_num[sub_index]
+                
                 else: 
                     upd_sample_g[str(self.re_num)] = 10    
                     # if self.grouping == '1' and self.iteration > self.iter_group:
