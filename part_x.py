@@ -46,7 +46,7 @@ class Part_X:
         
         if self.grouping == '0': #or \
             #vol(subregion, dim) >= 0.125* region_vol:
-            uni_number = 20
+            uni_number = 10
             if self.method == 'BO':
                 uni_number = 10
         else:
