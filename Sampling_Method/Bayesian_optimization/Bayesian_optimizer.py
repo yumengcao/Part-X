@@ -13,6 +13,8 @@ from numpy.typing import NDArray
 class Bayesian_Optimizer:
     
     def __init__(self, X: np.array, Y: np.array, target_fun: str, subregion: list, n_bo: int) -> Tuple[NDArray]:
+        assert X.shape[0] == len(Y), "Number of samples in X must match length of Y"
+        assert X.shape[1] == len(subregion), "Dimension of X must match subregion dimensions"
         self.X = X
         self.Y = Y
         self.target = target_fun
@@ -21,7 +23,11 @@ class Bayesian_Optimizer:
  
    
     def test_function(self, X):
-        return eval(self.target)
+        try:
+            M = X
+            return eval(self.target)
+        except Exception as e:
+            raise ValueError(f"Error evaluating target function: {e}")
 
     def surrogate(self, Xsamples, model):
         '''
@@ -37,7 +43,6 @@ class Bayesian_Optimizer:
         '''
         # catch any warning generated when making a prediction
         with catch_warnings():
-            # ignore generated warnings
             simplefilter("ignore")
             return model.predict(Xsamples, return_std=True)
         
@@ -45,11 +50,11 @@ class Bayesian_Optimizer:
         z = (best - mean + 0.5)/std#- xi)/std
         return norm.cdf(z)
     
-    def EI(self, mean, std, y_min):
-        a = (y_min - mean )#- xi)
+    def EI(self, mean, std, y_min, xi=0.1):
+        std = np.maximum(std, 1e-9)  # avoid divide by zero
+        a = (y_min - mean - xi)
         z = a / std
         return a * norm.cdf(z) + std * norm.pdf(z)
-    
     
     def acquisition(self, Xsamples: np.array, model):
         '''
@@ -70,7 +75,7 @@ class Bayesian_Optimizer:
         # calculate mean and stdev via surrogate function
         mu, std = self.surrogate(Xsamples, model)
         # calculate the probability of improvement
-        probs = self.EI(mu, std, best)
+        probs = self.EI(mu, std, best, xi=0.1)
         return probs
     
     def opt_acquisition(self, model, n_b:int, i_dim):
@@ -120,7 +125,7 @@ class Bayesian_Optimizer:
         n_b = 50
         
         for j in range(self.n_bo):
-            model = GaussianProcessRegressor()#kernel = Matern(nu=2.5),
+            model = GaussianProcessRegressor(kernel=Matern(nu=2.5), alpha=1e-6, normalize_y=True)#kernel = Matern(nu=2.5),
             # alpha = 1e-6,
             # normalize_y = True,
             # n_restarts_optimizer = len(self.X),
@@ -131,7 +136,9 @@ class Bayesian_Optimizer:
             # sample the point
             bo_y = self.test_function(bo_x)
             # add the data to the dataset
-            self.X = np.vstack((self.X,bo_x))
+            self.X = np.vstack((self.X, bo_x.reshape(1, -1)))
             self.Y.append(bo_y)
+        return self.X, self.Y    
+              
         
 #b_o = Bayesian_Optimizer(s:np.array, Y:np.array, ' (M[0]**2+M[1]-11)**2+(M[0]+ M[1]**2-7)**2 -90', list: sub_r)

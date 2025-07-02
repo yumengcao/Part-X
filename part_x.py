@@ -1,9 +1,5 @@
 import sys
-# print(sys.path)
-# sys.path.append('/Users/yumengcao/opt/anaconda3/bin/python')
-# # sys.path.append('/usr/bin/python3')
-# sys.path.append('/Users/yumengcao/part_x_python')
-# sys.path.append('/Users/yumengcao/part_x_python/Funtional.__tools__')
+
 
 import numpy as np
 import argparse
@@ -15,7 +11,7 @@ warnings.filterwarnings('ignore')
 import time
 from treelib import Node, Tree
 from Functional.__tools__ import vol, undefined_vol, _uni_number_ 
-from partitioning_algorithm.partitioning_algorithm import partitioning
+from partitioning_algorithm.partitioning_algorithm import Partitioning
 from Sampling_Method.Uniform_random import uniform_sampling, robustness_values
 from Model_construction.GP_Model import GP_model
 from Classify_Method.classification import region_classify, group_classify
@@ -92,7 +88,7 @@ class Part_X:
                 
                 #print(tree.get_node('1').data)
                 #print('group' ,group_result)
-                branching = partitioning(theta_undefined, dim, 
+                branching = Partitioning(theta_undefined, dim, 
                                         uni_sample_iter, uni_rob_iter, iteration,
                                         group_result, self.grouping, group_sample_num,
                                         region_vol, tree,re_num)
