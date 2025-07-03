@@ -32,32 +32,38 @@ class Partitioning:
         width = (high - low) / num_parts
         return [(low + i * width, low + (i + 1) * width) for i in range(num_parts)]
 
-    def partitioning_algorithm(self) -> Dict[str, List[Tuple[float, float]]]:
+    def partitioning_algorithm(self) -> Tuple[Dict[str, List[Tuple[float, float]]], Dict[str, int]]:
         """
-        Partition each subregion along specified dimension.
+        Partition subregions along dim_index.
 
         Returns:
-            dict: {new_region_id: region_bounds}
+            part_sub (dict): New subregions after partitioning
+            next_dim_index (dict): dim_index to be used in next round
         """
         part_sub = {}
-        new_id = 0
+        next_dim_index = {}
+        region_counter = 0
 
-        for region_id, bounds in self.subregions.items():
+        for sub_id, bounds in self.subregions.items():
             self._validate_bounds(bounds)
-            d = self.dim_index[region_id]
-            num_parts = self.part_number[region_id]
+            d = self.dim_index[sub_id]
+            p_num = self.part_number[sub_id]
 
-            if num_parts == 1:
-                part_sub[str(new_id)] = bounds
-                new_id += 1
+            if p_num == 1:
+                part_sub[str(region_counter)] = bounds
+                next_dim_index[str(region_counter)] = d  # keep same dim if not split
+                region_counter += 1
                 continue
 
-            intervals = self._split_interval(bounds[d][0], bounds[d][1], num_parts)
+            low = bounds[d][0]
+            high = bounds[d][1]
+            intervals = self._split_interval(low, high, p_num)
 
             for interval in intervals:
                 new_bounds = copy.deepcopy(bounds)
                 new_bounds[d] = interval
-                part_sub[str(new_id)] = new_bounds
-                new_id += 1
+                part_sub[str(region_counter)] = new_bounds
+                next_dim_index[str(region_counter)] = (d + 1) % self.dim
+                region_counter += 1
 
-        return part_sub
+        return part_sub, next_dim_index
