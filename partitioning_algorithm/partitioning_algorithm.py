@@ -4,39 +4,30 @@ from typing import Dict, List, Tuple
 
 class Partitioning:
     def __init__(self,
-                 subregions: Dict[str, List[Tuple[float, float]]],
+                 tree: Dict[str, Dict[str, Dict[str, List[Tuple[float, float]]]]],
+                 sample_allocation: Dict[str, int],
                  dim_index: Dict[str, int],
-                 dim: int,
                  part_number: Dict[str, int],
-                 mother_allocation: Dict[str, int]):
-        """
-        Parameters:
-            subregions: dict {region_id: [(low1, up1), (low2, up2), ...]}
-            dim_index: dict {region_id: dimension_to_split}
-            dim: total number of dimensions
-            part_number: dict {region_id: how many parts to split}
-            mother_allocation: dict {region_id: number of samples for this region}
-        """
-        self.subregions = subregions
+                 dim: int,
+                 region_counter: int):
+        self.tree = tree
+        self.sample_allocation = sample_allocation
         self.dim_index = dim_index
-        self.dim = dim
         self.part_number = part_number
-        self.mother_allocation = mother_allocation
+        self.dim = dim
+        self.region_counter = region_counter
 
     def _validate_bounds(self, region_bounds: List[Tuple[float, float]]):
-        """Ensure region bounds are valid."""
         assert len(region_bounds) == self.dim, "Region must have bounds for each dimension"
         for i, (low, high) in enumerate(region_bounds):
             if not low < high:
                 raise ValueError(f"Invalid bounds in dim {i}: low={low}, high={high}")
 
     def _split_interval(self, low: float, high: float, num_parts: int) -> List[Tuple[float, float]]:
-        """Split [low, high] into equal intervals."""
         width = (high - low) / num_parts
         return [(low + i * width, low + (i + 1) * width) for i in range(num_parts)]
 
     def _allocate_child_samples(self, total: int, n_children: int) -> List[int]:
-        """Evenly split samples from parent to children."""
         base = total // n_children
         rem = total % n_children
         alloc = [base] * n_children
@@ -44,46 +35,52 @@ class Partitioning:
             alloc[i] += 1
         return alloc
 
-    def partitioning_algorithm(self) -> Tuple[Dict[str, List[Tuple[float, float]]],
-                                              Dict[str, int],
-                                              Dict[str, int]]:
-        """
-        Returns:
-            part_sub: dict of new subregions {new_id: bounds}
-            child_allocation: dict {new_id: samples allocated}
-            dim_index_new: dict {new_id: dimension to split next}
-        """
-        part_sub = {}
-        child_allocation = {}
-        dim_index_new = {}
-        region_counter = 0
+    def partition(self) -> Tuple[
+            Dict[str, Dict[str, Dict[str, List[Tuple[float, float]]]]],
+            Dict[str, int],
+            Dict[str, int],
+            int]:
 
-        for region_id, bounds in self.subregions.items():
-            self._validate_bounds(bounds)
-            d = self.dim_index[region_id]
-            num_parts = self.part_number[region_id]
-            total_samples = self.mother_allocation[region_id]
+        # Get current iteration level
+        current_iter = max([int(key.split("_")[-1]) for key in self.tree.keys()])
+        next_iter = f"iter_{current_iter + 1}"
+        self.tree[next_iter] = {}
 
-            if num_parts == 1:
-                # No split
-                new_id = str(region_counter)
-                part_sub[new_id] = bounds
-                child_allocation[new_id] = total_samples
-                dim_index_new[new_id] = d
-                region_counter += 1
-                continue
+        next_sample_allocation = {}
+        next_dim_index = {}
 
-            low, high = bounds[d]
-            intervals = self._split_interval(low, high, num_parts)
-            sample_alloc = self._allocate_child_samples(total_samples, num_parts)
+        for parent_key, region_dict in self.tree[f"iter_{current_iter}"].items():
+            for region_id, bounds in region_dict.items():
+                self._validate_bounds(bounds)
 
-            for i, interval in enumerate(intervals):
-                new_bounds = copy.deepcopy(bounds)
-                new_bounds[d] = interval
-                new_id = str(region_counter)
-                part_sub[new_id] = new_bounds
-                child_allocation[new_id] = sample_alloc[i]
-                dim_index_new[new_id] = (d + 1) % self.dim
-                region_counter += 1
+                num_parts = self.part_number.get(region_id, 1)
+                dim_to_split = self.dim_index.get(region_id, 0)
+                total_samples = self.sample_allocation.get(region_id, 0)
 
-        return part_sub, child_allocation, dim_index_new
+                if num_parts == 1:
+                    # Region remains unchanged
+                    if parent_key not in self.tree[next_iter]:
+                        self.tree[next_iter][f"parent_{region_id}"] = {}
+                    self.tree[next_iter][f"parent_{region_id}"][region_id] = bounds
+                    next_sample_allocation[region_id] = total_samples
+                    next_dim_index[region_id] = dim_to_split
+                    continue
+
+                # Perform partitioning
+                low, high = bounds[dim_to_split]
+                intervals = self._split_interval(low, high, num_parts)
+                sample_alloc = self._allocate_child_samples(total_samples, num_parts)
+
+                children = {}
+                for i, interval in enumerate(intervals):
+                    new_bounds = copy.deepcopy(bounds)
+                    new_bounds[dim_to_split] = interval
+                    new_region_id = f"r{self.region_counter + 1}_L{current_iter + 1}"
+                    children[new_region_id] = new_bounds
+                    next_sample_allocation[new_region_id] = sample_alloc[i]
+                    next_dim_index[new_region_id] = (dim_to_split + 1) % self.dim
+                    self.region_counter += 1
+
+                self.tree[next_iter][f"parent_{region_id}"] = children
+
+        return self.tree, next_sample_allocation, next_dim_index, self.region_counter
