@@ -1,256 +1,185 @@
+
 import sys
-
-
 import numpy as np
 import argparse
 import logging
 import warnings
 import math 
 import copy
-warnings.filterwarnings('ignore')
 import time
 from treelib import Node, Tree
-from Functional.__tools__ import vol, undefined_vol, _uni_number_ 
+from Graphing.partition_plot import part_plot
+from Functional.__tools__ import vol, undefined_vol , extract_regions_and_parents_iter
 from partitioning_algorithm.partitioning_algorithm import Partitioning
 from Sampling_Method.Uniform_random import uniform_sampling, robustness_values
 from Model_construction.GP_Model import GP_model
-from Classify_Method.classification import region_classify, group_classify
+from Classify_Method.classification import region_classify
 from Sampling_Method.Bayesian_optimization.Bayesian_optimizer import Bayesian_Optimizer
-from Grouping_Method._group_ import criteria, dist_group
+from Sampling_Method.allocate_bo_uni import __allo__b_uni__
+from Sampling_Method.Merge_Filter_sample import merge_parent_samples_to_child
 from Graphing.partition_plot import part_plot
 from Graphing.grouping_plot import group_plot
 from Graphing.sampling_plot import sample_plot
+from score_construction.sample_budget_allocation import sample_allo_mother
+from score_construction.score_scaling import score_scale
+from score_construction.dynamic_partition import score_based_partition
+
+# === Logging Configuration ===
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(levelname)s] %(message)s',
+    handlers=[
+        logging.StreamHandler(),
+    ]
+)
 
 class Part_X:
 
-    def __init__(self, region, method, function, 
-                 budget, grouping):
-        '''
-        region: region need to be classified
-        method: 'uniform_sampling', 'BO'
-        test_function: callable function
-        budget: total budget for sampling points
-        iter_group: iteration to start grouping
-        '''
+    def __init__(self, region, method, function, budget):
         self.region = region
         self.method = method
         self.function = function
         self.budget = budget
-        self.grouping = grouping
-   
-    def uni_sample_num(self, subregion_index: str, upd_sample_g: dict):
         
-        if self.grouping == '0': #or \
-            #vol(subregion, dim) >= 0.125* region_vol:
-            uni_number = 10
-            if self.method == 'BO':
-                uni_number = 10
-        else:
-            
-            uni_number = upd_sample_g[subregion_index]
-        return uni_number
-    
     def test_function(self, X):
         return eval(self.function)
 
     def __exe__(self):
-        start =time.time()
+        start = time.time()
         region = eval(self.region)
         dim = len(region)
-        budget_cum = 0
-        re_num = 1
-        #dim_index = list(range(0, dim ))*(round(100/dim) +1) ##iteration = 100
-        
-        tree = Tree()
-        tree.create_node("Root", '1', data = {'region': region, 'dim_index': 1})
-        uni_sample_iter = {}
-        uni_rob_iter = {}
-        grouping = {}
+        budget_cum = 20
+        total_budget = 0
+
+        tree = {
+            'iter_0': {
+                'parent_NULL': {
+                    'r1_L0': region
+                }
+            }
+        }
+        mother_allocation = {'r1_L0': 20}
+        dim_index = {'r1_L0': 0}
+        part_number = {'r1_L0': 2}
+        region_counter = 0
         region_vol = vol(region, dim)
+
         theta_plus = {}
         theta_minus = {}
-        group_sample_num = {}
-        sample_all = np.empty([0, dim])
-        rob_all = np.empty([0, 1])
-        group_result = {}
+
+        sample_all = {'iter_1' : {}}
+        rob_all = {'iter_1' : {}}
+        score_scaled = {}
+        score_unscaled = {}
+
         for iteration in range(15):
+            budget_cum += total_budget
+
             score_iter = {}
+            avg_mu_iter = {}
+            avg_sigma_iter = {}
             theta_minus_iter = {}
             theta_plus_iter = {}
-            if iteration == 0: 
-                theta_undefined = {'1': region}
-            und_v = undefined_vol(theta_undefined)
+
+            if iteration == 0:
+                theta_undefined = tree['iter_0']['parent_NULL']
+            und_v = undefined_vol(theta_undefined, dim)
 
             if budget_cum < self.budget and \
                 und_v > 0.01 * region_vol:
+                    
+                logging.info(f"Starting iteration {iteration+1}, cumulative budget: {budget_cum}")
+                iter_key = 'iter_' + str(iteration + 1)
+                partitioner = Partitioning(tree, mother_allocation, dim_index, part_number, dim, region_counter)
+                tree, child_allocation, dim_index, region_counter = partitioner.partition()
                 
-                print(budget_cum)
+                part_subregions, parent_iter = extract_regions_and_parents_iter(tree, iter_key)
                 
-                #print(tree.get_node('1').data)
-                #print('group' ,group_result)
-                branching = Partitioning(theta_undefined, dim, 
-                                        uni_sample_iter, uni_rob_iter, iteration,
-                                        group_result, self.grouping, group_sample_num,
-                                        region_vol, tree,re_num)
                 
-                part_subregions, uni_select_X, uni_select_Y, re_num, upd_sample_g = branching.partitioning_algorithm()
-                
-                uni_sample_iter = {}
-                uni_rob_iter = {}
                 theta_minus_iter = {}
                 theta_plus_iter = {}
                 theta_undefined = {}
-                #print('partition result subregion: ', part_subregions.keys())
+                sample_all[iter_key] = {}
+                rob_all[iter_key] = {}
                 
                 for key in part_subregions.keys():
-                    
                     subregion = part_subregions[key]
-                    #print('subregion', subregion)
-                    uni_number = self.uni_sample_num(key, upd_sample_g)
-                    sample_uni = uniform_sampling(subregion, dim, uni_number)
-                    robustness_uni = robustness_values(sample_uni, self.test_function)
-                    budget_cum += uni_number
-                    
+
                     if self.method == 'BO':
-                        __exe_BO_ = Bayesian_Optimizer(sample_uni, robustness_uni, self.function, subregion, n_bo = 10)
-                        __exe_BO_.Bayesian_optimization()
-                        budget_cum += 10
-                        #print('bo', __exe_BO_.X)
-                        #print('bo', __exe_BO_.Y)
-                        if iteration != 0:
-                           
-                            subr_sample = __exe_BO_.X # np.vstack((__exe_BO_.X, uni_select_X[key]))
-                            subr_robust = __exe_BO_.Y #+ uni_select_Y[key]
-                        
-                        elif iteration == 0:
-                            subr_sample = __exe_BO_.X.copy()
-                            subr_robust = __exe_BO_.Y.copy()
-
-                        
+                        n_bo, n_unif = __allo__b_uni__(child_allocation[key])
                     else:
-        
-                        if iteration!= 0:
-                            if uni_select_X[key] != []:
-                                subr_sample =  np.vstack((sample_uni,uni_select_X[key]))
-                            else:
-                                subr_sample = sample_uni
-                            subr_robust = robustness_uni + uni_select_Y[key]
-                        
-                        else:
-                            subr_sample = sample_uni.copy()
-                            subr_robust = robustness_uni.copy()
-                    
-                    if iteration == 0:
-                        uni_rob_iter[key]  = robustness_uni
-                        uni_sample_iter[key] = sample_uni
-                        
-                    else: 
-                        
-                        uni_rob_iter[key]  = robustness_uni+uni_select_Y[key]
-                        if uni_select_X[key]!= []:
-                            uni_sample_iter[key] =  np.vstack((sample_uni,uni_select_X[key]))
-                        else:
-                            uni_sample_iter[key] = sample_uni
-                        
-                    
-                    sample_all = np.append(sample_all.copy(), subr_sample, axis = 0)
-                    rob_all = np.append(rob_all.copy(), subr_robust)
-                        
-                    test_Y = robustness_values(subr_sample, self.test_function)
-                    #print('testy', len(test_Y))
-                    #print('sub rob:', len(subr_robust))
-                    #print('subsam', len(subr_sample))
-                    for r in range(len(test_Y)):
-                        if test_Y[r] != list(subr_robust)[r]:
-                            print(r, 'sample error')
-                        
-                    
-                    exe_gp = GP_model(subr_sample, subr_robust, dim, subregion, und_v)
-                    score, CI_lower, CI_upper = exe_gp.confidence_interval()
-                    score_iter[key] = score
-                    #print('CI_lower', CI_lower)
-                    #print('CI_upper', CI_upper)
-                    theta_minus_iter, theta_plus_iter, theta_undefined = region_classify(subregion, 
-                                                                                        CI_lower, CI_upper, key,theta_undefined, 
-                                                                                        theta_minus_iter, theta_plus_iter, iteration)
-            
-                    
-               
-                if self.grouping != '0':
-                    #print('score', score_iter)
-                    group_sample_num, group_result, group_crit2 = dist_group(score_iter, part_subregions)
-                    grouping['level'+ str(iteration + 1)] = group_result
-                    
+                        n_unif = child_allocation[key]
 
-                    #theta_minus_iter, theta_plus_iter, theta_undefined = group_classify(group_crit, theta_plus_iter, 
-                                                                                      #theta_minus_iter, theta_undefined, score_iter,  part_subregions)
+                    sample_uni = uniform_sampling(subregion, dim, n_unif)
+                    robustness_uni = robustness_values(sample_uni, lambda x: self.test_function(x))
+
+                    if self.method == 'BO':
+                        __exe_BO_ = Bayesian_Optimizer(sample_uni, robustness_uni, self.function, subregion, n_bo)
+                        subr_sample, subr_robust = __exe_BO_.Bayesian_optimization()
+                    else:
+                        subr_sample = sample_uni.copy()
+                        subr_robust = robustness_uni.copy()
                     
-                theta_plus['level'+ str(iteration + 1)] = theta_plus_iter
-                theta_minus['level'+ str(iteration + 1)] = theta_minus_iter
+                    
+                    
+                    sample_all, rob_all = merge_parent_samples_to_child(sample_all, rob_all, iteration, key,
+                        parent_iter[key], subregion, subr_sample, subr_robust)
+                    #print('sample_all:', sample_all)
+                    #print('rob_all:', rob_all)
+                    
+                    exe_gp = GP_model(sample_all['iter_' + str(iteration+1)][key],
+                                      rob_all['iter_' + str(iteration+1)][key],
+                                      dim, subregion, 16)
+                    avg_mu, avg_sigma, score, CI_lower, CI_upper = exe_gp.confidence_interval()
+                    avg_mu_iter[key] = avg_mu
+                    avg_sigma_iter[key] = avg_sigma
+                    score_iter[key] = score
+
+                    theta_minus_iter, theta_plus_iter, theta_undefined = region_classify(
+                        subregion, CI_lower, CI_upper, key, theta_undefined,
+                        theta_minus_iter, theta_plus_iter)
+
+                
+                score_unscaled[iter_key] = score_iter
+                score_scaled[iter_key] = score_scale(avg_mu_iter, score_iter)
+                part_number, total_subregions = score_based_partition(score_scaled[iter_key], iteration)
+                total_budget = total_subregions * 15 
+                print(f"Total budget for iteration {iteration+1}: {total_budget}")
+                mother_allocation = sample_allo_mother(score_scaled[iter_key], total_budget) 
+                print('score',score_iter)
+                print('score_scaled',score_scaled[iter_key])
+                print('mother_allocation:', mother_allocation)
+                print(part_number)
+                theta_plus[iter_key] = theta_plus_iter
+                theta_minus[iter_key] = theta_minus_iter
             else:
-                #group_result = del_grouping(theta_plus_iter, theta_minus_iter, group_result)
+                logging.info("Stopping criteria met: budget limit or low undefined volume.")
                 break
-        print(#'theta_minus: ',theta_minus, "---------------------------------------",\
-              #'theta_plus:' ,theta_plus,  "---------------------------------------", \
-              #'theta_undefined:', theta_undefined,  "---------------------------------------",\
-              'budget:', budget_cum, "---------------------------------------" )#,\
-              #'group:', grouping, "---------------------------------------")
-                  #'Tree:', Tree  )
-        print('undefined volumn', und_v)
+            
+        logging.info(f"Final unscaled scores: {score_unscaled}")
+        logging.info(f"Final scaled scores: {score_scaled}")
+        logging.info(f"Total cumulative budget used: {budget_cum}")
+        logging.info(f"Remaining undefined volume proportion: {und_v/region_vol:.4f}")
         end = time.time()
-        print('Running time: %s Seconds'%(end-start))
-        np.savetxt('output_sam.txt', sample_all)
-        np.savetxt('output_rob.txt', rob_all)
-        return theta_minus, theta_plus, theta_undefined, budget_cum, group_result, sample_all, rob_all         
+        logging.info(f"Total run time: {end - start:.2f} seconds")
+
+        return theta_minus, theta_plus, theta_undefined, budget_cum, sample_all, rob_all, tree
 
 if __name__ == "__main__":
-
-    arguments_parser = argparse.ArgumentParser(
-        description="level-set classification")
-    arguments_parser.add_argument(
-        "-r",
-        "--region",
-        type = str,
-        help = "region needed to be classified, as [[,], [,], [,], ...]"
-    )
-    arguments_parser.add_argument(
-        "-m",
-        "--method",
-        type = str,
-        help = "sampling method, 'BO' or 'uniform_sampling' "
-    )
-    arguments_parser.add_argument(
-        "-f",
-        "--function",
-        type = str,
-        help = " target black-box function as 'X[1]+X[0]...' "
-    )
-    arguments_parser.add_argument(
-        "-b",
-        "--budget",
-        type = int,
-        help = "total budget (sampling points)"
-    )
-
-    arguments_parser.add_argument(
-        "-g",
-        "--grouping",
-        type = str,
-        help = "use grouping method?"
-    )
-    
+    arguments_parser = argparse.ArgumentParser(description="level-set classification")
+    arguments_parser.add_argument("-r", "--region", type=str, help="region needed to be classified, as [[,], [,], [,], ...]")
+    arguments_parser.add_argument("-m", "--method", type=str, help="sampling method, 'BO' or 'uniform_sampling' ")
+    arguments_parser.add_argument("-f", "--function", type=str, help=" target black-box function as 'X[1]+X[0]...' ")
 
     args = arguments_parser.parse_args()
-    # Convert data
-    bart = Part_X(args.region, args.method, args.function, args.budget, args.grouping)
+    bart = Part_X(args.region, args.method, args.function, budget = 3000)
     logging.info("Input region: {}".format(args.region))
-    #logging.info("Outputs: {}".format(args.output))
-    theta_minus, theta_plus, theta_undefined, budget_cum, grouping, sample_all, rob_all  = bart.__exe__()
-    part_plot(theta_minus, theta_plus, theta_undefined, eval(args.region), args.function, args.method+'_' + args.grouping, \
-        sample_all, rob_all, args.grouping)
-    #sample_plot(sample_all, rob_all, args.method, args.grouping)
-    if args.grouping == '1':
-        group_plot(grouping, theta_minus, theta_plus, eval(args.region), args.function, args.method+'_' + args.grouping)
+    region = eval(args.region)
+    #test_function = eval(args.function) 
+    theta_minus, theta_plus, theta_undefined, budget_cum, sample_all, rob_all, tree = bart.__exe__()
+
+    part_plot(theta_minus, theta_plus, theta_undefined, region, args.function, args.method,
+            sample_all, rob_all)
     logging.info("---- Process end ----")
                     
 

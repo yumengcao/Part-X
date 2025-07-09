@@ -1,52 +1,50 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import numpy as np
-import math
-from Graphing.sampling_plot import sample_plot
 
-
-def part_plot(theta_minus, theta_plus, theta_undefined, region, test_function, method, sample_all, rob, group):
+def part_plot(theta_minus, theta_plus, theta_undefined, region, test_function, method, sample_all, rob_all):
     fig, ax = plt.subplots(figsize=(8, 8)) 
-    plt.title(method + '_'+ "subregions")
-    plt.xlim(region[0][0], region[0][1]) 
-    plt.ylim(region[1][0], region[1][1])
-
+    ax.set_xlim(region[0][0], region[0][1]) 
+    ax.set_ylim(region[1][0], region[1][1])
+    seen_regions = set()
     # --- plot theta_minus
     for level in theta_minus:
         for bounds in theta_minus[level].values():
-            ax.add_patch(
-                patches.Rectangle(
-                    (bounds[0][0], bounds[1][0]),
-                    bounds[0][1] - bounds[0][0],
-                    bounds[1][1] - bounds[1][0],
-                    alpha=0.05, facecolor='r', edgecolor='black'
-                )
-            )
+            region_id = tuple(map(tuple, bounds))  
+            if region_id in seen_regions:
+                continue
+            seen_regions.add(region_id)
+            ax.add_patch(patches.Rectangle(
+                (bounds[0][0], bounds[1][0]),
+                bounds[0][1] - bounds[0][0],
+                bounds[1][1] - bounds[1][0],
+                alpha=0.2, facecolor='r', edgecolor='black'
+            ))
 
     # --- plot theta_plus
     for level in theta_plus:
         for bounds in theta_plus[level].values():
-            ax.add_patch(
-                patches.Rectangle(
-                    (bounds[0][0], bounds[1][0]),
-                    bounds[0][1] - bounds[0][0],
-                    bounds[1][1] - bounds[1][0],
-                    alpha=0.05, facecolor='g', edgecolor='black'
-                )
-            )
-
-    # --- plot theta_undefined
-    for bounds in theta_undefined.values():
-        ax.add_patch(
-            patches.Rectangle(
+            region_id = tuple(map(tuple, bounds))  
+            if region_id in seen_regions:
+                continue
+            seen_regions.add(region_id)
+            ax.add_patch(patches.Rectangle(
                 (bounds[0][0], bounds[1][0]),
                 bounds[0][1] - bounds[0][0],
                 bounds[1][1] - bounds[1][0],
-                alpha=0.05, facecolor='b', edgecolor='black'
-            )
-        )
+                alpha=0.12, facecolor='g', edgecolor='black'
+            ))
 
-    # --- plot contour line for f(x)=0
+    # --- plot theta_undefined
+    for bounds in theta_undefined.values():
+        ax.add_patch(patches.Rectangle(
+            (bounds[0][0], bounds[1][0]),
+            bounds[0][1] - bounds[0][0],
+            bounds[1][1] - bounds[1][0],
+            alpha=0.2, facecolor='b', edgecolor='black'
+        ))
+
+    # --- plot contour f(x) = 0
     xx = np.arange(region[0][0], region[0][1], 0.05)
     yy = np.arange(region[1][0], region[1][1], 0.05)
     X, Y = np.meshgrid(xx, yy)
@@ -54,9 +52,18 @@ def part_plot(theta_minus, theta_plus, theta_undefined, region, test_function, m
     Z = eval(f_str)
     ax.contour(X, Y, Z, levels=[0], colors='k')
 
-    # --- plot samples on same ax
-    sample_plot(ax, sample_all, rob, method, group)
+    # --- plot all samples
+    for iter_name in sample_all:
+        for region_name in sample_all[iter_name]:
+            x = sample_all[iter_name][region_name]
+            y = rob_all[iter_name][region_name]
+            x_pos = x[y > 0]
+            x_neg = x[y <= 0]
+            if len(x_pos) > 0:
+                ax.scatter(x_pos[:, 0], x_pos[:, 1], c='blue', s=2)
+            if len(x_neg) > 0:
+                ax.scatter(x_neg[:, 0], x_neg[:, 1], c='red', s=2)
 
-    ax.set_title(method + '_' + group + ' (partition + samples)')
-    ax.legend()
+    ax.set_title(method + ' (partition + samples)')
+    ax.legend(fontsize='x-small', loc='upper right')
     plt.show()

@@ -1,46 +1,36 @@
 import numpy as np
 from random import sample
 import copy
+from typing import List
 
-def vol(sub_u:list,i_dim: int) -> int:    #calculate the volume of undefined area
-    '''
-    calculate defined regions‘ volume
-    Parameters:
-        sub_u(list) :defined regions [[1,2], [3,4]]
-        i_dim(int) : dimension of these regions
-    
+def vol(bounds, dim):
+    """Compute the volume of a region with given bounds."""
+    volume = 1.0
+    for low, up in bounds:
+        volume *= up - low
+    return volume
 
-    Returns:
-        int: the volume of that regions
+def undefined_vol(undefined_regions: dict, dim) -> float:
+    """
+    Compute the total volume of all undefined subregions in a given iteration.
 
-    '''
-    v = 0
-    a = []
-    for j in range(i_dim):
-        a.append ((sub_u[j][1] - sub_u[j][0]))
-    v += np.prod(a)
-    return v
-
-def undefined_vol(undefined_region: dict) -> int:
-    '''
-    calculate undefined regions‘ total volume in eacg iter
-    Parameters:
-        ndefined_region (dict) : undefined regions dict['level_2'] = {'1': [], '2': []}
-     
-    
+    Args:
+        undefined_regions (dict): Dictionary mapping subregion ID to region bounds.
+                                  Format: {'r1_L1': [(low1, up1), (low2, up2), ...], ...}
+        dim (int): Dimensionality of the region
 
     Returns:
-        int: the volume of undefined subregions
+        float: Total volume of all undefined subregions.
+    """
+    total_vol = 0.0
+    for key, region in undefined_regions.items():
+        if not isinstance(region, list) or not all(isinstance(b, tuple) and len(b) == 2 for b in region):
+            raise ValueError(f"Malformed region {key}: {region}")
+        if len(region) != dim:
+            raise ValueError(f"Region {key} has dimension {len(region)} but expected {dim}")
+        total_vol += vol(region, dim)
+    return total_vol
 
-    '''
-    undefined_volumn = 0
-    for i in undefined_region.keys():
-        a = []
-        for j in range(len(undefined_region[i])):
-            a.append ((undefined_region[i][j][1] - \
-                       undefined_region[i][j][0]))
-        undefined_volumn += np.prod(a) 
-    return undefined_volumn
 
 def select_regions(sample: np.array, subregion: list, 
                    robustness: np.array, dim: int):
@@ -110,3 +100,45 @@ def _uni_number_(subregions: dict,
 #             del grouping['group6'][key]
     
 #     return grouping
+def extract_regions_and_parents_iter(tree: dict, iteration_key:str) -> tuple:
+    """
+    Extract regions and their parent names from the partitioning tree for a specific iteration.     
+    Args:
+        tree (dict): The partitioning tree structure.
+        iteration_key (str): The key for the iteration level to extract regions from.
+    Returns:
+        tuple: A tuple containing two dictionaries:
+            - regions: A dictionary mapping region names to their bounds.   
+            - parents: A dictionary mapping region names to their parent names.         
+    Raises:
+        KeyError: If the iteration_key does not exist in the tree.  
+    """
+    if iteration_key not in tree:
+        return {}, {}
+
+    regions = {}
+    parents = {}
+    for parent_key, children in tree[iteration_key].items():
+        parent_name = parent_key.replace('parent_', '')
+        for region_name, bounds in children.items():
+            regions[region_name] = bounds
+            parents[region_name] = parent_name
+    return regions, parents
+
+
+def find_parent_region(tree: dict, target_region: str) -> str:
+    
+    """ Find the parent region str of a target region in the partitioning tree.     
+    Args:
+        tree (dict): The partitioning tree structure.
+        target_region (str): The key of the target region to find its parent.
+    Returns:
+        str: The key of the parent region if found, otherwise None. 
+    """
+    
+    for iter_key, iter_dict in tree.items():
+        for parent_key, children_dict in iter_dict.items():
+            for region_key in children_dict:
+                if region_key == target_region:
+                    return parent_key.replace('parent_', '')
+    return None 

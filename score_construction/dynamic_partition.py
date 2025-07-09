@@ -1,30 +1,37 @@
 import numpy as np
 
-def score_based_partition(scores):
+def score_based_partition(scores: dict, iteration: int) -> tuple:
     """
-    based on the scores of each region, determine how to split the regions.
+    Decide how to partition each region based on its score.
 
-    args:
-        scores: np.array of shape [n_regions]: scores for each region
-        
-
-   return:
-        split_counts: np.array, each element indicates how many subregions the region will be split into.
-     
+    Args:
+        scores (dict): region_id -> score (float)
+        iteration (int): current iteration number
+    Returns:
+        tuple:
+            - split_counts (dict): region_id -> number of subregions (1, 2, or 3)
+            - total_subregions (int): total number of subregions across all regions
     """
-    tau1 = np.quantile(scores, 0.3)
-    tau2 = np.quantile(scores, 0.7)
+    split_counts = {}
+    
 
-    split_counts = np.zeros_like(scores, dtype=int)
- 
+    if iteration < 2:
+        # For early iterations, always split into 2 subregions
+        for region in scores:
+            split_counts[region] = 2
+            
+    else:
+        score_values = np.array(list(scores.values()))
+        tau1 = np.quantile(score_values, 0.3)
+        tau2 = np.quantile(score_values, 0.7)
 
-    for i, score in enumerate(scores):
-        if score <= tau1:
-            split_counts[i] = 3
-        elif score <= tau2:
-            split_counts[i] = 2
-        else:
-            split_counts[i] = 1
-
-
-    return split_counts
+        for region, score in scores.items():
+            if score <= tau1:
+                count = 3
+            elif score <= tau2:
+                count = 2
+            else:
+                count = 1
+            split_counts[region] = count
+    total_subregions = len(split_counts)       
+    return split_counts, total_subregions

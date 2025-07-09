@@ -1,53 +1,32 @@
 import numpy as np
+from typing import Dict
 
 
-def sample_allo_mother(scores, total_budget, region_amount):
-    """sllocate sample budget to nother node based on the scores.
-    Args:
-        scores (np.array): input array of scores for each region.
-        total_budget (int_): sample budget in iteration k.
-        region_amount(int): number of subregions in iteration k.
-    Returns:
-        allocation (np.array): sampled budget allocation for each region.
-    """
-    base_rate = 5
-    base_bud = max(1, total_budget // (base_rate * region_amount))
-    if np.sum(scores) == 0:
-        allo_prob= np.full_like(scores, (total_budget- base_bud*region_amount) // len(scores))
-    else:
-        prob = (1/scores) / np.sum(1/scores) 
-        allo_prob = np.random.multinomial(total_budget- base_bud*region_amount, prob)
-        
-    allocation =  base_bud+ allo_prob
-        
-    return allocation
+import numpy as np
+from typing import Dict
 
-def sample_allo_child(allocation, branch_num, seed = None, mode='random'):
-    """allocate sample budget from mother to children node
-
-    Args:
-        allocation (np.array): allocation for each region in ieration k
-        branch_num np.array): branching number for each subnode(k) in iteration k+1.
+def sample_allo_mother(scores: Dict[str, float], total_budget: int) -> Dict[str, int]:
+    region_ids = list(scores.keys())
+    region_scores = np.array([scores[k] for k in region_ids])
+    region_amount = len(region_scores)
     
-    Returns:
-        allocation_child （np.array): allocation for each subnode in iteration k+1.
-    """
-    if seed is not None:
-        np.random.seed(seed)
+    # Base rate component
+    base_rate = 2
+    base_bud = max(1, total_budget // (base_rate * region_amount))
+    remaining_budget = total_budget - base_bud * region_amount
 
-    allocation_child = []
-    for parent_n, child_n in zip(allocation, branch_num):
-        base = parent_n // child_n
-        rem = parent_n % child_n
+    # Score normalization: avoid very small scores dominating
+    score_eps = 1e-4
+    safe_scores = np.maximum(region_scores, score_eps)
+    
+    # Use 1 / log(score + 1) to reduce sensitivity to tiny scores
+    inverse_scores = 1.0 / (np.log(safe_scores + 1.0))
+    
+    # Normalize to probabilities
+    prob = inverse_scores / np.sum(inverse_scores)
 
-        alloc = np.full(child_n, base)
+    # Allocate remaining samples
+    extra_allocation = np.random.multinomial(remaining_budget, prob)
+    allocation = base_bud + extra_allocation
 
-        if mode == 'random' and rem > 0:
-            indices = np.random.choice(child_n, size=rem, replace=False)
-        else:
-            indices = np.arange(rem)
-
-        alloc[indices] += 1
-        allocation_child.append(alloc)
-
-    return np.concatenate(allocation_child)
+    return {k: int(a) for k, a in zip(region_ids, allocation)}
