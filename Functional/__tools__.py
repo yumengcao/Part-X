@@ -65,29 +65,7 @@ def select_regions(sample: np.array, subregion: list,
     return np.array(sample_select), robust_select
 
 
-def _uni_number_(subregions: dict, 
-               uni_rob_iter: dict, dim: int) -> dict:
-    '''
-    uniform in the whole region
-     
-    subregions(dict): dict of subregions
-    uni_rob_iter(dict): cumm roboustness values of each iterations
-    dim(int)
 
-    return:
-    ni_rob_select(dict): selected robs
-    (need to *vol(subregion))
-
-    '''
-    
-    uni_density = min(list(len(uni_rob_iter[key])/vol(subregions[key], dim) for \
-                           key in uni_rob_iter.keys()))
-    uni_rob_select = {}
-    for key in subregions.keys():
-        sub_num = int(uni_density * vol(subregions[key], dim))
-        uni_rob_select[key] = sample(uni_rob_iter[key], sub_num)
-    
-    return uni_rob_select
 
 # def del_grouping(theta_plus_iter: dict, theta_minus_iter: dict, grouping: dict) -> dict:
     
