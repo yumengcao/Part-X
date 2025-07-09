@@ -4,11 +4,11 @@ setup(
     name='Part_X',
     version='1.0.0',
     author='Yumeng Cao',
-    author_email='ycao108@asu.edu',  # 可选：替换为你自己的邮箱
+    author_email='ycao108@asu.edu',  
     description='A level-set classification algorithm using Gaussian Process modeling and partitioning',
     long_description=open('README_LevelSet_Classifier.md', encoding='utf-8').read(),
     long_description_content_type='text/markdown',
-    url='https://github.com/yumengcao/Part-X/blob/score-based-algo/',  # 可选：填写你托管代码的链接
+    url='https://github.com/yumengcao/Part-X/blob/score-based-algo/',  
     packages=find_packages(),
     python_requires='>=3.8',
     install_requires=[
@@ -30,7 +30,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            # 可选：例如 'run-partx=Part_X.part_x:main'
+            'part_x=Part_X.main:main',  # Assuming you have a main function in Part_X/main.py
         ]
     },
 )
