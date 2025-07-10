@@ -68,7 +68,7 @@ class Bayesian_Optimizer:
                 kernel=kernel,
                 alpha=1e-6,
                 normalize_y=True,
-                n_restarts_optimizer=10
+                n_restarts_optimizer=5
             )
             model.fit(X_scaled, Y_scaled)
 

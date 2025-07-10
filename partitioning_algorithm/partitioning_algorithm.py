@@ -9,13 +9,15 @@ class Partitioning:
                  dim_index: Dict[str, int],
                  part_number: Dict[str, int],
                  dim: int,
-                 region_counter: int):
+                 region_counter: int,
+                 allowed_regions: List[str]): 
         self.tree = tree
         self.sample_allocation = sample_allocation
         self.dim_index = dim_index
         self.part_number = part_number
         self.dim = dim
         self.region_counter = region_counter
+        self.allowed_regions = set(allowed_regions) 
 
     def _validate_bounds(self, region_bounds: List[Tuple[float, float]]):
         assert len(region_bounds) == self.dim, "Region must have bounds for each dimension"
@@ -41,7 +43,6 @@ class Partitioning:
             Dict[str, int],
             int]:
 
-        # Get current iteration level
         current_iter = max([int(key.split("_")[-1]) for key in self.tree.keys()])
         next_iter = f"iter_{current_iter + 1}"
         self.tree[next_iter] = {}
@@ -51,6 +52,14 @@ class Partitioning:
 
         for parent_key, region_dict in self.tree[f"iter_{current_iter}"].items():
             for region_id, bounds in region_dict.items():
+                if region_id not in self.allowed_regions:
+                    if parent_key not in self.tree[next_iter]:
+                        self.tree[next_iter][f"parent_{region_id}"] = {}
+                    self.tree[next_iter][f"parent_{region_id}"][region_id] = bounds
+                    next_sample_allocation[region_id] = self.sample_allocation.get(region_id, 0)
+                    next_dim_index[region_id] = self.dim_index.get(region_id, 0)
+                    continue
+
                 self._validate_bounds(bounds)
 
                 num_parts = self.part_number.get(region_id, 1)
@@ -58,7 +67,6 @@ class Partitioning:
                 total_samples = self.sample_allocation.get(region_id, 0)
 
                 if num_parts == 1:
-                    # Region remains unchanged
                     if parent_key not in self.tree[next_iter]:
                         self.tree[next_iter][f"parent_{region_id}"] = {}
                     self.tree[next_iter][f"parent_{region_id}"][region_id] = bounds
@@ -66,7 +74,7 @@ class Partitioning:
                     next_dim_index[region_id] = dim_to_split
                     continue
 
-                # Perform partitioning
+                # 执行划分
                 low, high = bounds[dim_to_split]
                 intervals = self._split_interval(low, high, num_parts)
                 sample_alloc = self._allocate_child_samples(total_samples, num_parts)

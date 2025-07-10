@@ -13,7 +13,7 @@ class GP_model:
                  Y: np.ndarray,
                  dim: int,
                  subregion: List[Tuple[float, float]],
-                 N_gp: int = 32):
+                 N_gp: int = 128):
         """
         Generate the micro Gaussian Process model on a subregion.
         """
@@ -36,7 +36,7 @@ class GP_model:
         # Define kernel
         kernel = C(1.0, (1e-2, 1e4)) * R(length_scale=np.ones(self.dim), length_scale_bounds=(1e-1, 1e3))
 
-        self.gp = GaussianProcessRegressor( kernel=kernel,n_restarts_optimizer=5,normalize_y=False )
+        self.gp = GaussianProcessRegressor() #kernel=kernel,n_restarts_optimizer=5,normalize_y=False )
 
         self.gp.fit(self.X_scaled, self.Y_scaled)
 
@@ -64,13 +64,10 @@ class GP_model:
             avg_mu = np.mean(y_pred)
             avg_sigma = np.mean(sigma)
             score = np.abs(avg_mu) / (avg_sigma + 1e-2)
-            if score<10:
-                print('score:', score)
-                print('avg_mu:', avg_mu)
-                print('avg_sigma:', avg_sigma)
+           
             CI_low = np.min(y_pred - 1.96 * sigma)
             CI_upper = np.max(y_pred + 1.96 * sigma)
-
+            #print(CI_low, CI_upper)
             return avg_mu, avg_sigma, score, CI_low, CI_upper
 
         except Exception as e:

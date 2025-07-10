@@ -9,6 +9,9 @@ import copy
 import time
 from treelib import Node, Tree
 from Graphing.partition_plot import part_plot
+from Graphing.score_boxplot import plot_one_iteration_boxplot
+from Graphing.allocation_comparison import plot_allocation_bar 
+from Graphing.score_comparison import plot_score_comparison_bar
 from Functional.__tools__ import vol, undefined_vol , extract_regions_and_parents_iter
 from partitioning_algorithm.partitioning_algorithm import Partitioning
 from Sampling_Method.Uniform_random import uniform_sampling, robustness_values
@@ -90,7 +93,8 @@ class Part_X:
                     
                 logging.info(f"Starting iteration {iteration+1}, cumulative budget: {budget_cum}")
                 iter_key = 'iter_' + str(iteration + 1)
-                partitioner = Partitioning(tree, mother_allocation, dim_index, part_number, dim, region_counter)
+                partitioner = Partitioning(tree, mother_allocation, dim_index, part_number, 
+                                           dim, region_counter, list(theta_undefined.keys()))
                 tree, child_allocation, dim_index, region_counter = partitioner.partition()
                 
                 part_subregions, parent_iter = extract_regions_and_parents_iter(tree, iter_key)
@@ -127,9 +131,8 @@ class Part_X:
                     #print('sample_all:', sample_all)
                     #print('rob_all:', rob_all)
                     
-                    exe_gp = GP_model(sample_all['iter_' + str(iteration+1)][key],
-                                      rob_all['iter_' + str(iteration+1)][key],
-                                      dim, subregion, 16)
+                    exe_gp = GP_model(sample_all[iter_key][key],rob_all[iter_key][key],
+                                      dim, subregion, 128)#sample_all['iter_' + str(iteration+1)][key],rob_all['iter_' + str(iteration+1)][key],
                     avg_mu, avg_sigma, score, CI_lower, CI_upper = exe_gp.confidence_interval()
                     avg_mu_iter[key] = avg_mu
                     avg_sigma_iter[key] = avg_sigma
@@ -139,25 +142,37 @@ class Part_X:
                         subregion, CI_lower, CI_upper, key, theta_undefined,
                         theta_minus_iter, theta_plus_iter)
 
-                
+                    
                 score_unscaled[iter_key] = score_iter
                 score_scaled[iter_key] = score_scale(avg_mu_iter, score_iter)
-                part_number, total_subregions = score_based_partition(score_scaled[iter_key], iteration)
-                total_budget = total_subregions * 15 
-                print(f"Total budget for iteration {iteration+1}: {total_budget}")
-                mother_allocation = sample_allo_mother(score_scaled[iter_key], total_budget) 
+                part_number, total_subregions = score_based_partition(score_unscaled[iter_key], iteration)
+                total_budget = total_subregions * 10 
+                mother_allocation_unscaled  = sample_allo_mother(score_iter,  total_budget) 
+                mother_allocation = sample_allo_mother(score_unscaled[iter_key], total_budget)
                 print('score',score_iter)
                 print('score_scaled',score_scaled[iter_key])
                 print('mother_allocation:', mother_allocation)
-                print(part_number)
+                #print(part_number)
                 theta_plus[iter_key] = theta_plus_iter
                 theta_minus[iter_key] = theta_minus_iter
+                #print('avg_mu_____________',avg_mu_iter)
+                plot_one_iteration_boxplot(avg_mu_iter, avg_sigma_iter, 
+                                           iteration+1, save_dir="iteration_plots")
+                plot_score_comparison_bar(score_iter, score_scaled[iter_key],
+                                       iteration+1, save_dir="score_compare_plots")
+                plot_allocation_bar( mother_allocation_unscaled, mother_allocation,
+                                    iteration+1, save_dir="allocation_plots")
+                #print('theta_minus', theta_minus_iter.keys())
+                #print('theta_plus', theta_plus_iter.keys())
+                #print('theta_undefined', theta_undefined.keys())
+                #print('parent', parent_iter)
             else:
                 logging.info("Stopping criteria met: budget limit or low undefined volume.")
                 break
-            
-        logging.info(f"Final unscaled scores: {score_unscaled}")
-        logging.info(f"Final scaled scores: {score_scaled}")
+        #print('theta_plus', theta_plus)   
+        #print('theta_minus', theta_minus) 
+        #logging.info(f"Final unscaled scores: {score_unscaled}")
+        #logging.info(f"Final scaled scores: {score_scaled}")
         logging.info(f"Total cumulative budget used: {budget_cum}")
         logging.info(f"Remaining undefined volume proportion: {und_v/region_vol:.4f}")
         end = time.time()
@@ -172,7 +187,7 @@ if __name__ == "__main__":
     arguments_parser.add_argument("-f", "--function", type=str, help=" target black-box function as 'X[1]+X[0]...' ")
 
     args = arguments_parser.parse_args()
-    bart = Part_X(args.region, args.method, args.function, budget = 3000)
+    bart = Part_X(args.region, args.method, args.function, budget = 4000)
     logging.info("Input region: {}".format(args.region))
     region = eval(args.region)
     #test_function = eval(args.function) 

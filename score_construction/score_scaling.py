@@ -11,12 +11,12 @@ def score_scale(avg_mu_iter: dict, score: dict, ) -> dict:
     Returns:
         dict: region_id -> scaled score
     """
-    # 筛选正负 mu 的最大值
+
     mu_vals = list(avg_mu_iter.values())
     mu_max_pos = max([abs(mu) for mu in mu_vals if mu > 0], default=1)
     mu_max_neg = max([abs(mu) for mu in mu_vals if mu < 0], default=1)
 
-    # 按区域逐一缩放
+ 
     score_scaled = {}
     for region in score:
         mu = avg_mu_iter.get(region, 0)
