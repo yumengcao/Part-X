@@ -22,7 +22,7 @@ def plot_score_comparison_bar(
 
     labels = list(scores_unscaled.keys())
     vals1 = [scores_unscaled[k] for k in labels]
-    scale_factor = 100  # scale scaled scores for better visualization
+    scale_factor = 10  # scale scaled scores for better visualization
     vals2 = [scores_scaled[k] * scale_factor for k in labels]
     #vals2 = [scores_scaled[k] for k in labels]
     x = np.arange(len(labels))

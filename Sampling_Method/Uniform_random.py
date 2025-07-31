@@ -1,5 +1,31 @@
 import numpy as np
 from typing import Callable, List
+from scipy.stats import qmc
+
+def sobol_sampling(subregion: list, dim: int, number: int) -> np.ndarray:
+    '''
+    Sobol sequence sampling method for bounded subregion.
+
+    Parameters:
+        subregion (list): list of [lower, upper] bounds for each dimension
+        dim (int): number of dimensions
+        number (int): number of samples to generate
+
+    Returns:
+        np.ndarray: array of shape (number, dim)
+    '''
+    if len(subregion) != dim:
+        raise ValueError("Dimension of subregion does not match 'dim'")
+    
+    bounds = np.array(subregion)  # shape (dim, 2)
+    l_bounds = bounds[:, 0]
+    u_bounds = bounds[:, 1]
+
+    sampler = qmc.Sobol(d=dim, scramble=True)
+    sobol_unit = sampler.random(n=number)
+    sobol_scaled = qmc.scale(sobol_unit, l_bounds, u_bounds)
+
+    return sobol_scaled
 
 def uniform_sampling(subregion: list, dim: int, number: int) -> np.ndarray:
     '''

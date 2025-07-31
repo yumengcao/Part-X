@@ -14,15 +14,13 @@ from Graphing.allocation_comparison import plot_allocation_bar
 from Graphing.score_comparison import plot_score_comparison_bar
 from Functional.__tools__ import vol, undefined_vol , extract_regions_and_parents_iter
 from partitioning_algorithm.partitioning_algorithm import Partitioning
-from Sampling_Method.Uniform_random import uniform_sampling, robustness_values
+from Sampling_Method.Uniform_random import uniform_sampling, robustness_values, sobol_sampling
 from Model_construction.GP_Model import GP_model
 from Classify_Method.classification import region_classify
 from Sampling_Method.Bayesian_optimization.Bayesian_optimizer import Bayesian_Optimizer
-from Sampling_Method.allocate_bo_uni import __allo__b_uni__
+from Sampling_Method.allocate_bo_uni import allo_new, allo__b_uni__
 from Sampling_Method.Merge_Filter_sample import merge_parent_samples_to_child
 from Graphing.partition_plot import part_plot
-from Graphing.grouping_plot import group_plot
-from Graphing.sampling_plot import sample_plot
 from score_construction.sample_budget_allocation import sample_allo_mother
 from score_construction.score_scaling import score_scale
 from score_construction.dynamic_partition import score_based_partition
@@ -93,6 +91,7 @@ class Part_X:
                     
                 logging.info(f"Starting iteration {iteration+1}, cumulative budget: {budget_cum}")
                 iter_key = 'iter_' + str(iteration + 1)
+                
                 partitioner = Partitioning(tree, mother_allocation, dim_index, part_number, 
                                            dim, region_counter, list(theta_undefined.keys()))
                 tree, child_allocation, dim_index, region_counter = partitioner.partition()
@@ -105,33 +104,35 @@ class Part_X:
                 theta_undefined = {}
                 sample_all[iter_key] = {}
                 rob_all[iter_key] = {}
-                
+                #print('subregions'+ iter_key, part_subregions)
                 for key in part_subregions.keys():
                     subregion = part_subregions[key]
 
                     if self.method == 'BO':
-                        n_bo, n_unif = __allo__b_uni__(child_allocation[key])
+                        n_bo, n_unif = allo__b_uni__(child_allocation[key])
                     else:
                         n_unif = child_allocation[key]
-
+                    print('uniform_sample_length', n_unif)
                     sample_uni = uniform_sampling(subregion, dim, n_unif)
                     robustness_uni = robustness_values(sample_uni, lambda x: self.test_function(x))
+                    sample_all, rob_all = merge_parent_samples_to_child(sample_all, rob_all, iteration, key,
+                        parent_iter[key], subregion, sample_uni, robustness_uni)
 
                     if self.method == 'BO':
-                        __exe_BO_ = Bayesian_Optimizer(sample_uni, robustness_uni, self.function, subregion, n_bo)
+                        print('bo_data_length', len(sample_all[iter_key][key]))
+                        __exe_BO_ = Bayesian_Optimizer(sample_all[iter_key][key], rob_all[iter_key][key], 
+                                                        self.function, subregion, n_bo)
                         subr_sample, subr_robust = __exe_BO_.Bayesian_optimization()
                     else:
-                        subr_sample = sample_uni.copy()
-                        subr_robust = robustness_uni.copy()
+                        subr_sample = sample_all[iter_key][key]
+                        subr_robust = rob_all[iter_key][key]
                     
-                    
-                    
-                    sample_all, rob_all = merge_parent_samples_to_child(sample_all, rob_all, iteration, key,
-                        parent_iter[key], subregion, subr_sample, subr_robust)
+                    #sample_all, rob_all = merge_parent_samples_to_child(sample_all, rob_all, iteration, key,
+                        #parent_iter[key], subregion, subr_sample, subr_robust)
                     #print('sample_all:', sample_all)
                     #print('rob_all:', rob_all)
-                    
-                    exe_gp = GP_model(sample_all[iter_key][key],rob_all[iter_key][key],
+                    print('sample_all_2_model', len(subr_sample))
+                    exe_gp = GP_model(subr_sample, subr_robust,
                                       dim, subregion, 128)#sample_all['iter_' + str(iteration+1)][key],rob_all['iter_' + str(iteration+1)][key],
                     avg_mu, avg_sigma, score, CI_lower, CI_upper = exe_gp.confidence_interval()
                     avg_mu_iter[key] = avg_mu
@@ -149,8 +150,8 @@ class Part_X:
                 total_budget = total_subregions * 10 
                 mother_allocation_unscaled  = sample_allo_mother(score_iter,  total_budget) 
                 mother_allocation = sample_allo_mother(score_unscaled[iter_key], total_budget)
-                print('score',score_iter)
-                print('score_scaled',score_scaled[iter_key])
+                #print('score',score_iter)
+                #print('score_scaled',score_scaled[iter_key])
                 print('mother_allocation:', mother_allocation)
                 #print(part_number)
                 theta_plus[iter_key] = theta_plus_iter
@@ -162,17 +163,22 @@ class Part_X:
                                        iteration+1, save_dir="score_compare_plots")
                 plot_allocation_bar( mother_allocation_unscaled, mother_allocation,
                                     iteration+1, save_dir="allocation_plots")
+                part_plot(theta_minus, theta_plus, theta_undefined, region, self.function, self.method,
+                sample_all, rob_all, iteration+1, save_dir="partition_plots")
                 #print('theta_minus', theta_minus_iter.keys())
                 #print('theta_plus', theta_plus_iter.keys())
-                #print('theta_undefined', theta_undefined.keys())
-                #print('parent', parent_iter)
+                print('theta_undefined in iteration'+str([iter_key]), theta_undefined.keys())
+                #print('parent', parent_iter)·················
             else:
                 logging.info("Stopping criteria met: budget limit or low undefined volume.")
                 break
         #print('theta_plus', theta_plus)   
         #print('theta_minus', theta_minus) 
         #logging.info(f"Final unscaled scores: {score_unscaled}")
-        #logging.info(f"Final scaled scores: {score_scaled}")
+        #logging.info(f"theta_undefined: {theta_undefined}")
+        logging.info(f"theta_undefined: {theta_undefined}")
+        logging.info(f"theta_minus: {theta_minus}")
+        logging.info(f"theta_plus: {theta_plus}")
         logging.info(f"Total cumulative budget used: {budget_cum}")
         logging.info(f"Remaining undefined volume proportion: {und_v/region_vol:.4f}")
         end = time.time()
@@ -187,7 +193,7 @@ if __name__ == "__main__":
     arguments_parser.add_argument("-f", "--function", type=str, help=" target black-box function as 'X[1]+X[0]...' ")
 
     args = arguments_parser.parse_args()
-    bart = Part_X(args.region, args.method, args.function, budget = 4000)
+    bart = Part_X(args.region, args.method, args.function, budget = 3000)
     logging.info("Input region: {}".format(args.region))
     region = eval(args.region)
     #test_function = eval(args.function) 

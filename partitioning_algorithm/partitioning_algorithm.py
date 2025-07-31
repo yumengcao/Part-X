@@ -38,10 +38,10 @@ class Partitioning:
         return alloc
 
     def partition(self) -> Tuple[
-            Dict[str, Dict[str, Dict[str, List[Tuple[float, float]]]]],
-            Dict[str, int],
-            Dict[str, int],
-            int]:
+        Dict[str, Dict[str, Dict[str, List[Tuple[float, float]]]]],
+        Dict[str, int],
+        Dict[str, int],
+        int]:
 
         current_iter = max([int(key.split("_")[-1]) for key in self.tree.keys()])
         next_iter = f"iter_{current_iter + 1}"
@@ -52,12 +52,8 @@ class Partitioning:
 
         for parent_key, region_dict in self.tree[f"iter_{current_iter}"].items():
             for region_id, bounds in region_dict.items():
+                # 只处理 allowed_regions 中的区域
                 if region_id not in self.allowed_regions:
-                    if parent_key not in self.tree[next_iter]:
-                        self.tree[next_iter][f"parent_{region_id}"] = {}
-                    self.tree[next_iter][f"parent_{region_id}"][region_id] = bounds
-                    next_sample_allocation[region_id] = self.sample_allocation.get(region_id, 0)
-                    next_dim_index[region_id] = self.dim_index.get(region_id, 0)
                     continue
 
                 self._validate_bounds(bounds)
@@ -67,14 +63,13 @@ class Partitioning:
                 total_samples = self.sample_allocation.get(region_id, 0)
 
                 if num_parts == 1:
-                    if parent_key not in self.tree[next_iter]:
+                    if f"parent_{region_id}" not in self.tree[next_iter]:
                         self.tree[next_iter][f"parent_{region_id}"] = {}
                     self.tree[next_iter][f"parent_{region_id}"][region_id] = bounds
                     next_sample_allocation[region_id] = total_samples
                     next_dim_index[region_id] = dim_to_split
                     continue
 
-                # 执行划分
                 low, high = bounds[dim_to_split]
                 intervals = self._split_interval(low, high, num_parts)
                 sample_alloc = self._allocate_child_samples(total_samples, num_parts)

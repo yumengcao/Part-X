@@ -1,8 +1,10 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import numpy as np
+import os
 
-def part_plot(theta_minus, theta_plus, theta_undefined, region, test_function, method, sample_all, rob_all):
+def part_plot(theta_minus, theta_plus, theta_undefined, region, test_function, 
+              method, sample_all, rob_all, iter_id, save_dir="partition_plots"):
     fig, ax = plt.subplots(figsize=(8, 8)) 
     ax.set_xlim(region[0][0], region[0][1]) 
     ax.set_ylim(region[1][0], region[1][1])
@@ -66,4 +68,6 @@ def part_plot(theta_minus, theta_plus, theta_undefined, region, test_function, m
 
     ax.set_title(method + ' (partition + samples)')
     ax.legend(fontsize='x-small', loc='upper right')
-    plt.show()
+    save_path = os.path.join(save_dir, f"iter_{iter_id}_partitioning_plot.png")
+    plt.savefig(save_path)
+    plt.close()

@@ -23,13 +23,13 @@ def score_based_partition(scores: dict, iteration: int) -> tuple:
     else:
         score_values = np.array(list(scores.values()))
         tau1 = np.quantile(score_values, 0.2)
-        tau2 = np.quantile(score_values, 0.9)
+        tau2 = np.quantile(score_values, 0.8)
 
         for region, score in scores.items():
             if score <= tau1:
                 count = 3
             #elif score <= tau2:
-                #count = 2
+               # count = 2
             else:
                 count = 2
             split_counts[region] = count
