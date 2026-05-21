@@ -120,3 +120,85 @@ def find_parent_region(tree: dict, target_region: str) -> str:
                 if region_key == target_region:
                     return parent_key.replace('parent_', '')
     return None 
+
+import numpy as np
+
+
+def check_all_same_sign(y: np.ndarray, eps: float = 1e-8) -> str:
+    """
+    Determine whether all values in a NumPy array share the same sign.
+
+    Parameters
+    ----------
+    y : np.ndarray
+        One-dimensional NumPy array containing real-valued samples.
+    eps : float, optional
+        Tolerance threshold used to classify values as positive, negative,
+        or approximately zero. Default is 1e-8.
+
+    Returns
+    -------
+    str
+        One of the following strings:
+            - 'positive'  : all values are strictly greater than eps
+            - 'negative'  : all values are strictly less than -eps
+            - 'zero-only' : all values are within [-eps, eps]
+            - 'mixed'     : values contain a mixture of signs
+
+    Raises
+    ------
+    ValueError
+        If the input array is empty.
+
+    Notes
+    -----
+    A value is considered:
+        positive if y > eps
+        negative if y < -eps
+        zero     if -eps <= y <= eps
+    """
+
+    if not isinstance(y, np.ndarray):
+        raise TypeError("Input y must be a NumPy array.")
+
+    if y.size == 0:
+        raise ValueError("Input array 'y' must not be empty.")
+
+    positive_mask = y > eps
+    negative_mask = y < -eps
+    zero_mask = (~positive_mask) & (~negative_mask)
+
+    if np.all(positive_mask):
+        return "positive"
+
+    if np.all(negative_mask):
+        return "negative"
+
+    if np.all(zero_mask):
+        return "zero-only"
+
+    return "mixed"
+
+
+def estimate_true_quantile(f_true, lo, hi, delta=0.1, grid_per_dim=200, mc_samples=200000, dim_threshold=3, seed=123):
+    lo = np.asarray(lo, dtype=float)
+    hi = np.asarray(hi, dtype=float)
+    d = len(lo)
+    if d <= dim_threshold:
+        # grid
+        counts = [grid_per_dim] * d
+        axes = [np.linspace(lo[i], hi[i], num=counts[i]) for i in range(d)]
+        mesh = np.meshgrid(*axes, indexing='xy')
+        pts = np.stack([m.ravel() for m in mesh], axis=1)
+        vals = f_true(pts)
+        vals = np.asarray(vals).ravel()
+        q = float(np.quantile(vals, delta))
+        return q
+    else:
+        rng = np.random.RandomState(seed)
+        pts = rng.uniform(low=lo, high=hi, size=(int(mc_samples), d))
+        vals = f_true(pts)
+        vals = np.asarray(vals).ravel()
+        q = float(np.quantile(vals, delta))
+        return q
+

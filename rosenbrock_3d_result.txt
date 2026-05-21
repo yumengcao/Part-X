@@ -1,0 +1,35 @@
+[INFO] Iteration 10 completed. Remaining undefined volume proportion: 0.3566
+[INFO] last iteration exhausted budget, adjusting to remaining budget
+[INFO] Total subregions: 973, allocated budget for this iteration: 6021, cumulative budget: 20000
+[INFO] [iter 10] budget=20000, M=0.1104, P=0.5330, C=0.3566, mis=0.00036
+[INFO] Stopping criteria met: budget limit or low undefined volume.
+[INFO] Wrote iteration stats to stats.csv
+[INFO] Total run time: 2901.40 seconds
+[INFO] iteration cumulative budget used: {'iter_1': 60, 'iter_2': 127, 
+'iter_3': 249, 'iter_4': 504, 
+'iter_5': 1026, 'iter_6': 2036, 
+'iter_7': 3954, 'iter_8': 7617, 
+'iter_9': 13979, 'iter_10': 20000}
+[INFO] Remaining volume proportions - Undefined: {'iter_1': 1.0, 'iter_2': 1.0, 'iter_3': 1.0, 'iter_4': 0.9999999999999999, 'iter_5': 0.9687500000000001, 'iter_6': 0.9409722222222217, 'iter_7': 0.8984374999999997, 'iter_8': 0.7119180812757199, 'iter_9': 0.4607526363168729, 'iter_10': 0.3565658757716072}, 
+Minus: {'iter_1': 0.0, 'iter_2': 0.0, 'iter_3': 0.0, 'iter_4': 0.0, 'iter_5': 0.0, 'iter_6': 0.02777777777777778, 'iter_7': 0.02777777777777778, 'iter_8': 0.0701195987654321, 'iter_9': 0.09728652263374485, 'iter_10': 0.11042791923868311}, 
+Plus: {'iter_1': 0.0, 'iter_2': 0.0, 'iter_3': 0.0, 'iter_4': 0.0, 'iter_5': 0.03125, 'iter_6': 0.03125, 'iter_7': 0.07378472222222222, 'iter_8': 0.21796231995884774, 'iter_9': 0.44196084104938266, 'iter_10': 0.533006204989712}
+[INFO] Final misclassification estimate: 0.023040 (prop 0.000360)
+python3 part_x.py -pm partx_params -fm rosenbrock_highD --delta 0 --out_csv stats.csv
+
+[INFO] Iteration 10 completed. Remaining undefined volume proportion: 0.3566
+[INFO] last iteration exhausted budget, adjusting to remaining budget
+[INFO] Total subregions: 973, allocated budget for this iteration: 6021, cumulative budget: 20000
+[INFO] [iter 10] budget=20000, M=0.1104, P=0.5330, C=0.3566, mis=0.00036
+[INFO] Stopping criteria met: budget limit or low undefined volume.
+[INFO] Wrote iteration stats to stats.csv
+[INFO] Total run time: 2901.40 seconds
+[INFO] iteration cumulative budget used: {'iter_1': 60, 'iter_2': 127, 
+'iter_3': 249, 'iter_4': 504, 
+'iter_5': 1026, 'iter_6': 2036, 
+'iter_7': 3954, 'iter_8': 7617, 
+'iter_9': 13979, 'iter_10': 20000}
+[INFO] Remaining volume proportions - Undefined: {'iter_1': 1.0, 'iter_2': 1.0, 'iter_3': 1.0, 'iter_4': 0.9999999999999999, 'iter_5': 0.9687500000000001, 'iter_6': 0.9409722222222217, 'iter_7': 0.8984374999999997, 'iter_8': 0.7119180812757199, 'iter_9': 0.4607526363168729, 'iter_10': 0.3565658757716072}, 
+Minus: {'iter_1': 0.0, 'iter_2': 0.0, 'iter_3': 0.0, 'iter_4': 0.0, 'iter_5': 0.0, 'iter_6': 0.02777777777777778, 'iter_7': 0.02777777777777778, 'iter_8': 0.0701195987654321, 'iter_9': 0.09728652263374485, 'iter_10': 0.11042791923868311}, 
+Plus: {'iter_1': 0.0, 'iter_2': 0.0, 'iter_3': 0.0, 'iter_4': 0.0, 'iter_5': 0.03125, 'iter_6': 0.03125, 'iter_7': 0.07378472222222222, 'iter_8': 0.21796231995884774, 'iter_9': 0.44196084104938266, 'iter_10': 0.533006204989712}
+[INFO] Final misclassification estimate: 0.023040 (prop 0.000360)
+python3 part_x.py -pm partx_params -fm rosenbrock_highD --delta 0 --out_csv stats.csvŒ

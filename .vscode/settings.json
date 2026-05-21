@@ -1,0 +1,13 @@
+{
+    "python.analysis.aiCodeActions": {
+
+        "implementAbstractClasses": true,
+        "generateSymbol": true,
+        "convertFormatString": true
+    },
+    "python.autoComplete.extraPaths": [
+        
+    ],
+    "python-envs.defaultEnvManager": "ms-python.python:conda",
+    "python-envs.defaultPackageManager": "ms-python.python:conda"
+}
