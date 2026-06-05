@@ -1,0 +1,357 @@
+output_root: experiments/outputs/baseline_comparison
+
+seed_mode: debug
+seed_sets:
+  debug: [0]
+  standard: [0, 1, 2, 3, 4]
+  final: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+benchmark_groups:
+  2d:
+    - rosenbrock2
+    - himmelblau
+    - branin2
+    - discontinuous2d
+    - shifted_sine2
+  3d:
+    - rosenbrock3
+    - ackley3
+    - levy3
+  6d:
+    - rosenbrock6
+    - ackley6
+    - levy6
+  10d:
+    - rosenbrock10
+    - ackley10
+    - levy10
+  all:
+    - rosenbrock2
+    - himmelblau
+    - branin2
+    - discontinuous2d
+    - shifted_sine2
+    - rosenbrock3
+    - ackley3
+    - levy3
+    - rosenbrock6
+    - ackley6
+    - levy6
+    - rosenbrock10
+    - ackley10
+    - levy10
+
+global:
+  max_iterations: 7
+  batch_size: 5
+  candidate_set_size: 1024
+  beta: 2.0
+  evaluate_truth: true
+  fit_gp: true
+  sampling_method: BO
+  prefer_grid_for_2d: true
+  mis_mc_samples: 1000
+  quantile_method: sobol
+  quantile_n_points: 32768
+
+methods:
+  - name: random_gp
+  - name: sobol_gp
+  - name: straddle
+  - name: gp_lse
+  - name: truvar
+  - name: sur
+  - name: upart_wrapper
+    sampling_method: BO
+  - name: partx_wrapper
+    sampling_method: BO
+  - name: pbnb_wrapper
+    enabled: true
+
+benchmarks:
+  himmelblau:
+    enabled: true
+    group: 2d
+    name: himmelblau
+    function: himmelblau
+    dimension: 2
+    bounds:
+      - [-5.0, 5.0]
+      - [-5.0, 5.0]
+    threshold_type: fixed
+    threshold: 0.0
+    recommended_budget: 150
+    recommended_initial_samples: 20
+    evaluation_type: dense_grid
+    evaluation_set_size: 1600
+    eval_grid_size: 40
+    note: testfunction_himm already returns raw Himmelblau minus 40.
+
+  rosenbrock2:
+    enabled: true
+    group: 2d
+    name: rosenbrock2
+    function: rosenbrock2
+    dimension: 2
+    bounds:
+      - [-2.0, 2.0]
+      - [-2.0, 2.0]
+    threshold_type: fixed
+    threshold: 9.93098
+    threshold_source: 0.1-quantile reference on recommended domain
+    recommended_budget: 150
+    recommended_initial_samples: 20
+    evaluation_type: dense_grid
+    evaluation_set_size: 1600
+    eval_grid_size: 40
+
+  branin2:
+    enabled: true
+    group: 2d
+    name: branin2
+    function: branin2
+    dimension: 2
+    bounds:
+      - [-5.0, 10.0]
+      - [0.0, 15.0]
+    threshold_type: fixed
+    threshold: 0.0
+    threshold_source: Shifted Branin implementation places the low-level set near zero.
+    recommended_budget: 150
+    recommended_initial_samples: 20
+    evaluation_type: dense_grid
+    evaluation_set_size: 1600
+    eval_grid_size: 40
+
+  shifted_sine2:
+    enabled: true
+    group: 2d
+    name: shifted_sine2
+    function: shifted_sine
+    dimension: 2
+    bounds:
+      - [-60.0, 60.0]
+      - [-60.0, 60.0]
+    threshold_type: fixed
+    threshold: 0.0
+    recommended_budget: 150
+    recommended_initial_samples: 20
+    evaluation_type: dense_grid
+    evaluation_set_size: 1600
+    eval_grid_size: 40
+    note: shifted sine implementation already uses a zero level-set shift.
+
+  discontinuous2d:
+    enabled: true
+    group: 2d
+    name: discontinuous2d
+    function: discontinuous2d
+    dimension: 2
+    bounds:
+      - [-1.0, 1.0]
+      - [-1.0, 1.0]
+    threshold_type: fixed
+    threshold: 0.0
+    recommended_budget: 150
+    recommended_initial_samples: 20
+    evaluation_type: dense_grid
+    evaluation_set_size: 1600
+    eval_grid_size: 40
+    note: Registry-only discontinuous 2D benchmark for stress-testing GP baselines.
+
+  rosenbrock3:
+    enabled: true
+    group: 3d
+    name: rosenbrock3
+    function: rosenbrock3
+    dimension: 3
+    bounds:
+      - [-2.0, 2.0]
+      - [-2.0, 2.0]
+      - [-2.0, 2.0]
+    threshold_type: fixed
+    threshold: 92.9442
+    threshold_source: 0.1-quantile reference on recommended domain
+    recommended_budget: 200
+    recommended_initial_samples: 30
+    evaluation_type: sobol
+    evaluation_set_size: 4096
+
+  ackley3:
+    enabled: true
+    group: 3d
+    name: ackley3
+    function: ackley3
+    dimension: 3
+    bounds:
+      - [-32.768, 32.768]
+      - [-32.768, 32.768]
+      - [-32.768, 32.768]
+    threshold_type: fixed
+    threshold: 19.3185
+    threshold_source: 0.1-quantile reference on recommended domain
+    recommended_budget: 200
+    recommended_initial_samples: 30
+    evaluation_type: sobol
+    evaluation_set_size: 4096
+
+  levy3:
+    enabled: true
+    group: 3d
+    name: levy3
+    function: levy3
+    dimension: 3
+    bounds:
+      - [-10.0, 10.0]
+      - [-10.0, 10.0]
+      - [-10.0, 10.0]
+    threshold_type: fixed
+    threshold: 6.54471
+    threshold_source: 0.1-quantile Sobol reference on recommended domain
+    recommended_budget: 200
+    recommended_initial_samples: 30
+    evaluation_type: sobol
+    evaluation_set_size: 4096
+
+  ackley6:
+    enabled: true
+    group: 6d
+    name: ackley6
+    function: ackley6
+    dimension: 6
+    bounds:
+      - [-32.768, 32.768]
+      - [-32.768, 32.768]
+      - [-32.768, 32.768]
+      - [-32.768, 32.768]
+      - [-32.768, 32.768]
+      - [-32.768, 32.768]
+    threshold_type: quantile
+    quantile_level: 0.1
+    quantile_method: sobol
+    quantile_n_points: 32768
+    recommended_budget: 400
+    recommended_initial_samples: 60
+    evaluation_type: sobol
+    evaluation_set_size: 8192
+
+  levy6:
+    enabled: true
+    group: 6d
+    name: levy6
+    function: levy6
+    dimension: 6
+    bounds:
+      - [-10.0, 10.0]
+      - [-10.0, 10.0]
+      - [-10.0, 10.0]
+      - [-10.0, 10.0]
+      - [-10.0, 10.0]
+      - [-10.0, 10.0]
+    threshold_type: quantile
+    quantile_level: 0.1
+    quantile_method: sobol
+    quantile_n_points: 32768
+    recommended_budget: 400
+    recommended_initial_samples: 60
+    evaluation_type: sobol
+    evaluation_set_size: 8192
+
+  rosenbrock6:
+    enabled: true
+    group: 6d
+    name: rosenbrock6
+    function: rosenbrock6
+    dimension: 6
+    bounds:
+      - [-2.0, 2.0]
+      - [-2.0, 2.0]
+      - [-2.0, 2.0]
+      - [-2.0, 2.0]
+      - [-2.0, 2.0]
+      - [-2.0, 2.0]
+    threshold_type: fixed
+    threshold: 633.085
+    threshold_source: 0.1-quantile reference on recommended domain
+    recommended_budget: 400
+    recommended_initial_samples: 60
+    evaluation_type: sobol
+    evaluation_set_size: 8192
+
+  ackley10:
+    enabled: true
+    group: 10d
+    name: ackley10
+    function: ackley10
+    dimension: 10
+    bounds:
+      - [-32.768, 32.768]
+      - [-32.768, 32.768]
+      - [-32.768, 32.768]
+      - [-32.768, 32.768]
+      - [-32.768, 32.768]
+      - [-32.768, 32.768]
+      - [-32.768, 32.768]
+      - [-32.768, 32.768]
+      - [-32.768, 32.768]
+      - [-32.768, 32.768]
+    threshold_type: quantile
+    quantile_level: 0.1
+    quantile_method: sobol
+    quantile_n_points: 32768
+    recommended_budget: 800
+    recommended_initial_samples: 100
+    evaluation_type: sobol
+    evaluation_set_size: 16384
+
+  levy10:
+    enabled: true
+    group: 10d
+    name: levy10
+    function: levy10
+    dimension: 10
+    bounds:
+      - [-10.0, 10.0]
+      - [-10.0, 10.0]
+      - [-10.0, 10.0]
+      - [-10.0, 10.0]
+      - [-10.0, 10.0]
+      - [-10.0, 10.0]
+      - [-10.0, 10.0]
+      - [-10.0, 10.0]
+      - [-10.0, 10.0]
+      - [-10.0, 10.0]
+    threshold_type: quantile
+    quantile_level: 0.1
+    quantile_method: sobol
+    quantile_n_points: 32768
+    recommended_budget: 800
+    recommended_initial_samples: 100
+    evaluation_type: sobol
+    evaluation_set_size: 16384
+
+  rosenbrock10:
+    enabled: true
+    group: 10d
+    name: rosenbrock10
+    function: rosenbrock10
+    dimension: 10
+    bounds:
+      - [-2.0, 2.0]
+      - [-2.0, 2.0]
+      - [-2.0, 2.0]
+      - [-2.0, 2.0]
+      - [-2.0, 2.0]
+      - [-2.0, 2.0]
+      - [-2.0, 2.0]
+      - [-2.0, 2.0]
+      - [-2.0, 2.0]
+      - [-2.0, 2.0]
+    threshold_type: quantile
+    quantile_level: 0.1
+    quantile_method: sobol
+    quantile_n_points: 32768
+    recommended_budget: 800
+    recommended_initial_samples: 100
+    evaluation_type: sobol
+    evaluation_set_size: 16384

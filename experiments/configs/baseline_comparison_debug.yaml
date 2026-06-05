@@ -1,0 +1,338 @@
+output_root: experiments/outputs/baseline_comparison_debug
+
+seed_mode: debug
+seed_sets:
+  debug: [0]
+  standard: [0, 1, 2, 3, 4]
+  final: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+benchmark_groups:
+  2d:
+    - rosenbrock2
+    - himmelblau
+    - branin2
+    - discontinuous2d
+    - shifted_sine2
+  3d:
+    - rosenbrock3
+    - ackley3
+    - levy3
+  6d:
+    - rosenbrock6
+    - ackley6
+    - levy6
+  10d:
+    - rosenbrock10
+    - ackley10
+    - levy10
+  all:
+    - rosenbrock2
+    - himmelblau
+    - branin2
+    - discontinuous2d
+    - shifted_sine2
+    - rosenbrock3
+    - ackley3
+    - levy3
+    - rosenbrock6
+    - ackley6
+    - levy6
+    - rosenbrock10
+    - ackley10
+    - levy10
+
+global:
+  max_iterations: 2
+  batch_size: 2
+  candidate_set_size: 16
+  n_eval_points: 32
+  evaluation_set_size: 32
+  eval_grid_size: 4
+  beta: 2.0
+  evaluate_truth: true
+  fit_gp: true
+  quantile_method: sobol
+  quantile_n_points: 64
+
+methods:
+  - name: random_gp
+  - name: sobol_gp
+
+benchmarks:
+  rosenbrock2:
+    enabled: true
+    group: 2d
+    name: rosenbrock2
+    function: rosenbrock2
+    dimension: 2
+    bounds:
+      - [-2.0, 2.0]
+      - [-2.0, 2.0]
+    threshold_type: fixed
+    threshold: 9.93098
+    recommended_budget: 8
+    recommended_initial_samples: 4
+    evaluation_type: dense_grid
+    evaluation_set_size: 16
+    eval_grid_size: 4
+
+  himmelblau:
+    enabled: true
+    group: 2d
+    name: himmelblau
+    function: himmelblau
+    dimension: 2
+    bounds:
+      - [-5.0, 5.0]
+      - [-5.0, 5.0]
+    threshold_type: fixed
+    threshold: 0.0
+    recommended_budget: 8
+    recommended_initial_samples: 4
+    evaluation_type: dense_grid
+    evaluation_set_size: 16
+    eval_grid_size: 4
+
+  branin2:
+    enabled: true
+    group: 2d
+    name: branin2
+    function: branin2
+    dimension: 2
+    bounds:
+      - [-5.0, 10.0]
+      - [0.0, 15.0]
+    threshold_type: fixed
+    threshold: 0.0
+    recommended_budget: 8
+    recommended_initial_samples: 4
+    evaluation_type: dense_grid
+    evaluation_set_size: 16
+    eval_grid_size: 4
+
+  discontinuous2d:
+    enabled: true
+    group: 2d
+    name: discontinuous2d
+    function: discontinuous2d
+    dimension: 2
+    bounds:
+      - [-1.0, 1.0]
+      - [-1.0, 1.0]
+    threshold_type: fixed
+    threshold: 0.0
+    recommended_budget: 8
+    recommended_initial_samples: 4
+    evaluation_type: dense_grid
+    evaluation_set_size: 16
+    eval_grid_size: 4
+
+  shifted_sine2:
+    enabled: true
+    group: 2d
+    name: shifted_sine2
+    function: shifted_sine
+    dimension: 2
+    bounds:
+      - [-60.0, 60.0]
+      - [-60.0, 60.0]
+    threshold_type: fixed
+    threshold: 0.0
+    recommended_budget: 8
+    recommended_initial_samples: 4
+    evaluation_type: dense_grid
+    evaluation_set_size: 16
+    eval_grid_size: 4
+
+  rosenbrock3:
+    enabled: true
+    group: 3d
+    name: rosenbrock3
+    function: rosenbrock3
+    dimension: 3
+    bounds:
+      - [-2.0, 2.0]
+      - [-2.0, 2.0]
+      - [-2.0, 2.0]
+    threshold_type: fixed
+    threshold: 92.9442
+    recommended_budget: 10
+    recommended_initial_samples: 4
+    evaluation_type: sobol
+    evaluation_set_size: 32
+
+  ackley3:
+    enabled: true
+    group: 3d
+    name: ackley3
+    function: ackley3
+    dimension: 3
+    bounds:
+      - [-32.768, 32.768]
+      - [-32.768, 32.768]
+      - [-32.768, 32.768]
+    threshold_type: fixed
+    threshold: 19.3185
+    recommended_budget: 10
+    recommended_initial_samples: 4
+    evaluation_type: sobol
+    evaluation_set_size: 32
+
+  levy3:
+    enabled: true
+    group: 3d
+    name: levy3
+    function: levy3
+    dimension: 3
+    bounds:
+      - [-10.0, 10.0]
+      - [-10.0, 10.0]
+      - [-10.0, 10.0]
+    threshold_type: fixed
+    threshold: 6.54471
+    recommended_budget: 10
+    recommended_initial_samples: 4
+    evaluation_type: sobol
+    evaluation_set_size: 32
+
+  rosenbrock6:
+    enabled: true
+    group: 6d
+    name: rosenbrock6
+    function: rosenbrock6
+    dimension: 6
+    bounds:
+      - [-2.0, 2.0]
+      - [-2.0, 2.0]
+      - [-2.0, 2.0]
+      - [-2.0, 2.0]
+      - [-2.0, 2.0]
+      - [-2.0, 2.0]
+    threshold_type: fixed
+    threshold: 633.085
+    recommended_budget: 12
+    recommended_initial_samples: 4
+    evaluation_type: sobol
+    evaluation_set_size: 32
+
+  ackley6:
+    enabled: true
+    group: 6d
+    name: ackley6
+    function: ackley6
+    dimension: 6
+    bounds:
+      - [-32.768, 32.768]
+      - [-32.768, 32.768]
+      - [-32.768, 32.768]
+      - [-32.768, 32.768]
+      - [-32.768, 32.768]
+      - [-32.768, 32.768]
+    threshold_type: quantile
+    quantile_level: 0.1
+    quantile_method: sobol
+    quantile_n_points: 64
+    recommended_budget: 12
+    recommended_initial_samples: 4
+    evaluation_type: sobol
+    evaluation_set_size: 32
+
+  levy6:
+    enabled: true
+    group: 6d
+    name: levy6
+    function: levy6
+    dimension: 6
+    bounds:
+      - [-10.0, 10.0]
+      - [-10.0, 10.0]
+      - [-10.0, 10.0]
+      - [-10.0, 10.0]
+      - [-10.0, 10.0]
+      - [-10.0, 10.0]
+    threshold_type: quantile
+    quantile_level: 0.1
+    quantile_method: sobol
+    quantile_n_points: 64
+    recommended_budget: 12
+    recommended_initial_samples: 4
+    evaluation_type: sobol
+    evaluation_set_size: 32
+
+  rosenbrock10:
+    enabled: true
+    group: 10d
+    name: rosenbrock10
+    function: rosenbrock10
+    dimension: 10
+    bounds:
+      - [-2.0, 2.0]
+      - [-2.0, 2.0]
+      - [-2.0, 2.0]
+      - [-2.0, 2.0]
+      - [-2.0, 2.0]
+      - [-2.0, 2.0]
+      - [-2.0, 2.0]
+      - [-2.0, 2.0]
+      - [-2.0, 2.0]
+      - [-2.0, 2.0]
+    threshold_type: quantile
+    quantile_level: 0.1
+    quantile_method: sobol
+    quantile_n_points: 64
+    recommended_budget: 12
+    recommended_initial_samples: 4
+    evaluation_type: sobol
+    evaluation_set_size: 32
+
+  ackley10:
+    enabled: true
+    group: 10d
+    name: ackley10
+    function: ackley10
+    dimension: 10
+    bounds:
+      - [-32.768, 32.768]
+      - [-32.768, 32.768]
+      - [-32.768, 32.768]
+      - [-32.768, 32.768]
+      - [-32.768, 32.768]
+      - [-32.768, 32.768]
+      - [-32.768, 32.768]
+      - [-32.768, 32.768]
+      - [-32.768, 32.768]
+      - [-32.768, 32.768]
+    threshold_type: quantile
+    quantile_level: 0.1
+    quantile_method: sobol
+    quantile_n_points: 64
+    recommended_budget: 12
+    recommended_initial_samples: 4
+    evaluation_type: sobol
+    evaluation_set_size: 32
+
+  levy10:
+    enabled: true
+    group: 10d
+    name: levy10
+    function: levy10
+    dimension: 10
+    bounds:
+      - [-10.0, 10.0]
+      - [-10.0, 10.0]
+      - [-10.0, 10.0]
+      - [-10.0, 10.0]
+      - [-10.0, 10.0]
+      - [-10.0, 10.0]
+      - [-10.0, 10.0]
+      - [-10.0, 10.0]
+      - [-10.0, 10.0]
+      - [-10.0, 10.0]
+    threshold_type: quantile
+    quantile_level: 0.1
+    quantile_method: sobol
+    quantile_n_points: 64
+    recommended_budget: 12
+    recommended_initial_samples: 4
+    evaluation_type: sobol
+    evaluation_set_size: 32
